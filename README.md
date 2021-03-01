@@ -20,10 +20,10 @@ LegoMe (c) 2021 Geraldo Netto
 Usage: python3 legome.py <input-image.jpg> <output-image.jpg>
 ```
 
-The original image
+The original image  
 ![Original image](input.jpg)
 
-Will be transformed into this, now it's your turn to order some bricks and build up the image! :)
+Will be transformed into this, now it's your turn to order some bricks and build up the image! :)  
 ![Transformed image](output.jpg)
 
 ## TODO
