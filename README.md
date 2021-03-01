@@ -35,12 +35,12 @@ Will be transformed into this, now it's your turn to order some bricks and build
 
 ## License
 
-* [BSD 3-Clause]( LICENSE)
+* [BSD 3-Clause](LICENSE)
 * This project is just for fun and has no relation with [Lego](https://www.lego.com)
 
 ## References
 
-[Learn OpenCV](https://github.com/spmallick/learnopencv/blob/master/Colormap/custom_colormap.py)
-[OpenCV LUT function](https://docs.opencv.org/2.4/modules/core/doc/operations_on_arrays.html#lut)
-[(unofficial) Lego colour palette](http://ryanhowerter.net/colors.php)
-[OpenCV: Detect whether a window is closed or close by press “x” button](https://medium.com/@mh_yip/opencv-detect-whether-a-window-is-closed-or-close-by-press-x-button-ee51616f7088)
+[Learn OpenCV](https://github.com/spmallick/learnopencv/blob/master/Colormap/custom_colormap.py)  
+[OpenCV LUT function](https://docs.opencv.org/2.4/modules/core/doc/operations_on_arrays.html#lut)  
+[(unofficial) Lego colour palette](http://ryanhowerter.net/colors.php)  
+[OpenCV: Detect whether a window is closed or close by press “x” button](https://medium.com/@mh_yip/opencv-detect-whether-a-window-is-closed-or-close-by-press-x-button-ee51616f7088)  
