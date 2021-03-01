@@ -20,6 +20,12 @@ LegoMe (c) 2021 Geraldo Netto
 Usage: python3 legome.py <input-image.jpg> <output-image.jpg>
 ```
 
+The original image
+![Original image](input.jpg)
+
+Will be transformed into this, now it's your turn to order some bricks and build up the image! :)
+![Transformed image](output.jpg)
+
 ## TODO
 
 * refactor
@@ -30,6 +36,7 @@ Usage: python3 legome.py <input-image.jpg> <output-image.jpg>
 ## License
 
 * [BSD 3-Clause]( LICENSE)
+* This project is just for fun and has no relation with [Lego](https://www.lego.com)
 
 ## References
 
