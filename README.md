@@ -1,7 +1,7 @@
 # legome
 
 Legome is a python script that uses [OpenCV](https://opencv.org/) to apply Lego colour palette into the input picture.
-The idea is to convert images and then transform in lego frame! :)
+The idea is to convert images and then use the image to sort of convert images into a 'lego painting'! :)
 
 ## Install
 
@@ -20,17 +20,17 @@ LegoMe (c) 2021 Geraldo Netto
 Usage: python3 legome.py <input-image.jpg> <output-image.jpg>
 ```
 
-The original image  
-![Original image](input.jpg)
+The original image
+![Original image](example/input.jpg)
 
-Will be transformed into this, now it's your turn to order some bricks and build up the image! :)  
-![Transformed image](output.jpg)
+Will be transformed into this, now it's your turn to order some bricks and build up the image! :)
+![Transformed image](example/output.jpg)
 
 ## TODO
 
-* refactor
-* add an option to hide/show recoloured image. currently, it is always shown by now
-* allow the colour palette to be dinamically loaded (json), once it could be useful for other scenarios (recolouring old pictures)
+* refactoring
+* add an option to hide/show recoloured image. currently, it is always shown
+* allow the colour palette to be dynamically loaded (json), once it could be useful for other scenarios (recolouring old pictures)
 * allow to upscale/downscale image (e.g.: allow to resize to A1, A2, A3, A4, ...)
 
 ## License
@@ -40,7 +40,7 @@ Will be transformed into this, now it's your turn to order some bricks and build
 
 ## References
 
-[Learn OpenCV](https://github.com/spmallick/learnopencv/blob/master/Colormap/custom_colormap.py)  
-[OpenCV LUT function](https://docs.opencv.org/2.4/modules/core/doc/operations_on_arrays.html#lut)  
-[(unofficial) Lego colour palette](http://ryanhowerter.net/colors.php)  
-[OpenCV: Detect whether a window is closed or close by press “x” button](https://medium.com/@mh_yip/opencv-detect-whether-a-window-is-closed-or-close-by-press-x-button-ee51616f7088)  
+[Learn OpenCV](https://github.com/spmallick/learnopencv/blob/master/Colormap/custom_colormap.py)
+[OpenCV LUT function](https://docs.opencv.org/2.4/modules/core/doc/operations_on_arrays.html#lut)
+[(unofficial) Lego colour palette](http://ryanhowerter.net/colors.php)
+[OpenCV: Detect whether a window is closed or close by press “x” button](https://medium.com/@mh_yip/opencv-detect-whether-a-window-is-closed-or-close-by-press-x-button-ee51616f7088)
