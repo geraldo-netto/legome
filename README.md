@@ -23,8 +23,10 @@ Usage: python3 legome.py <input-image.jpg> <output-image.jpg>
 The original image  
 ![Original image](example/input.jpg)
 
-Will be transformed into this, now it's your turn to order some bricks and build up the image! :)  
+Will be transformed into this  
 ![Transformed image](example/output.jpg)
+
+now it's your turn to order some bricks and build up the image! :)  
 
 ## TODO
 
@@ -40,7 +42,7 @@ Will be transformed into this, now it's your turn to order some bricks and build
 
 ## References
 
-[Learn OpenCV](https://github.com/spmallick/learnopencv/blob/master/Colormap/custom_colormap.py)
-[OpenCV LUT function](https://docs.opencv.org/2.4/modules/core/doc/operations_on_arrays.html#lut)
-[(unofficial) Lego colour palette](http://ryanhowerter.net/colors.php)
-[OpenCV: Detect whether a window is closed or close by press “x” button](https://medium.com/@mh_yip/opencv-detect-whether-a-window-is-closed-or-close-by-press-x-button-ee51616f7088)
+[Learn OpenCV](https://github.com/spmallick/learnopencv/blob/master/Colormap/custom_colormap.py)  
+[OpenCV LUT function](https://docs.opencv.org/2.4/modules/core/doc/operations_on_arrays.html#lut)  
+[(unofficial) Lego colour palette](http://ryanhowerter.net/colors.php)  
+[OpenCV: Detect whether a window is closed or close by press “x” button](https://medium.com/@mh_yip/opencv-detect-whether-a-window-is-closed-or-close-by-press-x-button-ee51616f7088)  
