@@ -26,7 +26,7 @@ The original image
 Will be transformed into this  
 ![Transformed image](example/output.jpg)
 
-now it's your turn to order some bricks and build up the image! :)  
+Now, it's your turn to order some bricks and build up the image! :)  
 
 ## TODO
 
