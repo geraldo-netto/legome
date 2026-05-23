@@ -1,0 +1,521 @@
+{
+  "name": "lego-bricks",
+  "description": "Solid Lego brick colors \u2014 derived from legome.lego_colors.LEGO_COLORS. Regenerate via `python3 scripts/build_palettes.py`.",
+  "source": "legome.lego_colors.LEGO_COLORS",
+  "colors": [
+    [
+      27,
+      42,
+      52
+    ],
+    [
+      242,
+      243,
+      242
+    ],
+    [
+      196,
+      40,
+      28
+    ],
+    [
+      13,
+      105,
+      172
+    ],
+    [
+      245,
+      205,
+      47
+    ],
+    [
+      75,
+      151,
+      75
+    ],
+    [
+      40,
+      127,
+      70
+    ],
+    [
+      39,
+      70,
+      44
+    ],
+    [
+      123,
+      46,
+      47
+    ],
+    [
+      105,
+      64,
+      39
+    ],
+    [
+      175,
+      120,
+      76
+    ],
+    [
+      214,
+      145,
+      99
+    ],
+    [
+      245,
+      193,
+      137
+    ],
+    [
+      215,
+      197,
+      153
+    ],
+    [
+      149,
+      138,
+      115
+    ],
+    [
+      163,
+      162,
+      165
+    ],
+    [
+      175,
+      181,
+      199
+    ],
+    [
+      99,
+      95,
+      82
+    ],
+    [
+      89,
+      93,
+      96
+    ],
+    [
+      116,
+      134,
+      156
+    ],
+    [
+      110,
+      153,
+      201
+    ],
+    [
+      32,
+      58,
+      86
+    ],
+    [
+      159,
+      195,
+      233
+    ],
+    [
+      135,
+      192,
+      234
+    ],
+    [
+      179,
+      215,
+      209
+    ],
+    [
+      0,
+      138,
+      128
+    ],
+    [
+      160,
+      188,
+      172
+    ],
+    [
+      160,
+      110,
+      185
+    ],
+    [
+      205,
+      164,
+      222
+    ],
+    [
+      255,
+      158,
+      205
+    ],
+    [
+      200,
+      80,
+      155
+    ],
+    [
+      146,
+      57,
+      120
+    ],
+    [
+      164,
+      30,
+      99
+    ],
+    [
+      95,
+      38,
+      131
+    ],
+    [
+      255,
+      158,
+      24
+    ],
+    [
+      218,
+      133,
+      64
+    ],
+    [
+      168,
+      95,
+      28
+    ],
+    [
+      255,
+      109,
+      119
+    ],
+    [
+      242,
+      112,
+      94
+    ],
+    [
+      251,
+      232,
+      144
+    ],
+    [
+      255,
+      240,
+      130
+    ],
+    [
+      248,
+      187,
+      61
+    ],
+    [
+      155,
+      154,
+      90
+    ],
+    [
+      220,
+      232,
+      116
+    ],
+    [
+      188,
+      233,
+      27
+    ],
+    [
+      54,
+      174,
+      191
+    ],
+    [
+      7,
+      139,
+      201
+    ],
+    [
+      173,
+      195,
+      192
+    ],
+    [
+      245,
+      159,
+      39
+    ]
+  ],
+  "metadata": [
+    {
+      "name": "Black",
+      "aliases": [],
+      "bricklink_id": 11
+    },
+    {
+      "name": "White",
+      "aliases": [],
+      "bricklink_id": 1
+    },
+    {
+      "name": "Bright Red",
+      "aliases": [
+        "Red"
+      ],
+      "bricklink_id": 5
+    },
+    {
+      "name": "Bright Blue",
+      "aliases": [
+        "Blue"
+      ],
+      "bricklink_id": 7
+    },
+    {
+      "name": "Bright Yellow",
+      "aliases": [
+        "Yellow"
+      ],
+      "bricklink_id": 3
+    },
+    {
+      "name": "Bright Green",
+      "aliases": [
+        "Green"
+      ],
+      "bricklink_id": 6
+    },
+    {
+      "name": "Dark Green",
+      "aliases": [],
+      "bricklink_id": 80
+    },
+    {
+      "name": "Earth Green",
+      "aliases": [],
+      "bricklink_id": null
+    },
+    {
+      "name": "Dark Red",
+      "aliases": [],
+      "bricklink_id": 59
+    },
+    {
+      "name": "Reddish Brown",
+      "aliases": [],
+      "bricklink_id": 88
+    },
+    {
+      "name": "Medium Nougat",
+      "aliases": [],
+      "bricklink_id": 150
+    },
+    {
+      "name": "Nougat",
+      "aliases": [],
+      "bricklink_id": 28
+    },
+    {
+      "name": "Light Nougat",
+      "aliases": [],
+      "bricklink_id": 90
+    },
+    {
+      "name": "Brick Yellow",
+      "aliases": [
+        "Tan"
+      ],
+      "bricklink_id": 2
+    },
+    {
+      "name": "Dark Tan",
+      "aliases": [],
+      "bricklink_id": 69
+    },
+    {
+      "name": "Medium Stone Grey",
+      "aliases": [
+        "Light Gray"
+      ],
+      "bricklink_id": 9
+    },
+    {
+      "name": "Light Bluish Gray",
+      "aliases": [],
+      "bricklink_id": 86
+    },
+    {
+      "name": "Dark Stone Grey",
+      "aliases": [
+        "Dark Gray"
+      ],
+      "bricklink_id": 10
+    },
+    {
+      "name": "Dark Bluish Gray",
+      "aliases": [],
+      "bricklink_id": 85
+    },
+    {
+      "name": "Sand Blue",
+      "aliases": [],
+      "bricklink_id": 55
+    },
+    {
+      "name": "Medium Blue",
+      "aliases": [],
+      "bricklink_id": 42
+    },
+    {
+      "name": "Earth Blue",
+      "aliases": [
+        "Dark Blue"
+      ],
+      "bricklink_id": 63
+    },
+    {
+      "name": "Bright Light Blue",
+      "aliases": [],
+      "bricklink_id": 105
+    },
+    {
+      "name": "Light Royal Blue",
+      "aliases": [],
+      "bricklink_id": 87
+    },
+    {
+      "name": "Aqua",
+      "aliases": [],
+      "bricklink_id": 41
+    },
+    {
+      "name": "Dark Turquoise",
+      "aliases": [],
+      "bricklink_id": 39
+    },
+    {
+      "name": "Sand Green",
+      "aliases": [],
+      "bricklink_id": 48
+    },
+    {
+      "name": "Medium Lavender",
+      "aliases": [],
+      "bricklink_id": 157
+    },
+    {
+      "name": "Lavender",
+      "aliases": [],
+      "bricklink_id": 154
+    },
+    {
+      "name": "Bright Pink",
+      "aliases": [
+        "Pink"
+      ],
+      "bricklink_id": 23
+    },
+    {
+      "name": "Dark Pink",
+      "aliases": [],
+      "bricklink_id": 47
+    },
+    {
+      "name": "Magenta",
+      "aliases": [],
+      "bricklink_id": 71
+    },
+    {
+      "name": "Bright Purple",
+      "aliases": [
+        "Purple"
+      ],
+      "bricklink_id": 24
+    },
+    {
+      "name": "Dark Purple",
+      "aliases": [],
+      "bricklink_id": 89
+    },
+    {
+      "name": "Medium Orange",
+      "aliases": [],
+      "bricklink_id": 31
+    },
+    {
+      "name": "Bright Orange",
+      "aliases": [
+        "Orange"
+      ],
+      "bricklink_id": 4
+    },
+    {
+      "name": "Dark Orange",
+      "aliases": [],
+      "bricklink_id": 68
+    },
+    {
+      "name": "Coral",
+      "aliases": [],
+      "bricklink_id": 220
+    },
+    {
+      "name": "Salmon",
+      "aliases": [],
+      "bricklink_id": 25
+    },
+    {
+      "name": "Light Yellow",
+      "aliases": [],
+      "bricklink_id": 33
+    },
+    {
+      "name": "Bright Light Yellow",
+      "aliases": [],
+      "bricklink_id": 103
+    },
+    {
+      "name": "Bright Light Orange",
+      "aliases": [],
+      "bricklink_id": 110
+    },
+    {
+      "name": "Olive Green",
+      "aliases": [],
+      "bricklink_id": 155
+    },
+    {
+      "name": "Yellowish Green",
+      "aliases": [],
+      "bricklink_id": 158
+    },
+    {
+      "name": "Lime",
+      "aliases": [],
+      "bricklink_id": 34
+    },
+    {
+      "name": "Medium Azure",
+      "aliases": [],
+      "bricklink_id": 156
+    },
+    {
+      "name": "Dark Azure",
+      "aliases": [],
+      "bricklink_id": 153
+    },
+    {
+      "name": "Light Aqua",
+      "aliases": [],
+      "bricklink_id": 152
+    },
+    {
+      "name": "Flame Yellowish Orange",
+      "aliases": [],
+      "bricklink_id": null
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "legome"
+version = "0.2.0"
+description = "Quantize an image to a Lego brick color palette so it can be built as a mosaic."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [{ name = "Geraldo Netto" }]
+keywords = ["lego", "mosaic", "image", "palette", "quantization", "opencv"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Graphics",
+]
+dependencies = [
+    "numpy>=1.24",
+    "opencv-python>=4.8",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "hypothesis>=6.100",
+    "mypy>=1.8",
+    "ruff>=0.5",
+]
+
+[project.scripts]
+legome = "legome.cli:main"
+
+[project.urls]
+Source = "https://github.com/legome/legome"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["legome*"]
+exclude = ["tests*", "example*"]
+
+[tool.setuptools.package-data]
+legome = ["py.typed", "palettes/*.json", "palettes/*.gpl"]
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests that shell out via subprocess and are slow",
+]
+addopts = "-ra"
+
+[tool.mypy]
+python_version = "3.10"
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+no_implicit_optional = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+files = ["legome"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]

@@ -1,0 +1,55 @@
+GIMP Palette
+Name: Lego Bricks
+Columns: 4
+# Generated from legome.lego_colors.LEGO_COLORS
+# Re-run scripts/build_palettes.py to update.
+#
+ 27  42  52 Black
+242 243 242 White
+196  40  28 Bright Red
+ 13 105 172 Bright Blue
+245 205  47 Bright Yellow
+ 75 151  75 Bright Green
+ 40 127  70 Dark Green
+ 39  70  44 Earth Green
+123  46  47 Dark Red
+105  64  39 Reddish Brown
+175 120  76 Medium Nougat
+214 145  99 Nougat
+245 193 137 Light Nougat
+215 197 153 Brick Yellow
+149 138 115 Dark Tan
+163 162 165 Medium Stone Grey
+175 181 199 Light Bluish Gray
+ 99  95  82 Dark Stone Grey
+ 89  93  96 Dark Bluish Gray
+116 134 156 Sand Blue
+110 153 201 Medium Blue
+ 32  58  86 Earth Blue
+159 195 233 Bright Light Blue
+135 192 234 Light Royal Blue
+179 215 209 Aqua
+  0 138 128 Dark Turquoise
+160 188 172 Sand Green
+160 110 185 Medium Lavender
+205 164 222 Lavender
+255 158 205 Bright Pink
+200  80 155 Dark Pink
+146  57 120 Magenta
+164  30  99 Bright Purple
+ 95  38 131 Dark Purple
+255 158  24 Medium Orange
+218 133  64 Bright Orange
+168  95  28 Dark Orange
+255 109 119 Coral
+242 112  94 Salmon
+251 232 144 Light Yellow
+255 240 130 Bright Light Yellow
+248 187  61 Bright Light Orange
+155 154  90 Olive Green
+220 232 116 Yellowish Green
+188 233  27 Lime
+ 54 174 191 Medium Azure
+  7 139 201 Dark Azure
+173 195 192 Light Aqua
+245 159  39 Flame Yellowish Orange
