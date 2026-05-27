@@ -65,7 +65,7 @@ benchmarks/RESULTS.md."""
 def _build_3d_lut(palette_bgr: np.ndarray) -> np.ndarray:
     """Build a 256^3 BGR -> nearest-palette-color LUT (uint8, shape 256^3,3).
 
-    Uses scipy.spatial.cKDTree when available; falls back to chunked numpy
+    Uses scipy.spatial.KDTree when available; falls back to chunked numpy
     broadcasting otherwise. Build cost: one-time ~0.5-2 s; lookup is then
     O(1) per pixel.
     """
@@ -74,9 +74,9 @@ def _build_3d_lut(palette_bgr: np.ndarray) -> np.ndarray:
     # Build a (256^3, 3) grid of all possible BGR values.
     grid = np.indices((256, 256, 256), dtype=np.int32).reshape(3, -1).T
     try:
-        from scipy.spatial import cKDTree
+        from scipy.spatial import KDTree
 
-        _, idx = cKDTree(palette_bgr).query(grid, k=1)
+        _, idx = KDTree(palette_bgr).query(grid, k=1)
     except ImportError:  # pragma: no cover - scipy is a required dep, but keep a fallback
         idx = np.empty(grid.shape[0], dtype=np.int64)
         step = 65536

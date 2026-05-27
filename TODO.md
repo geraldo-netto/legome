@@ -60,6 +60,7 @@ _(no open findings — cv2/numpy/scipy imports are localized to the call sites t
 |----|--------|--------|-------------|
 | REL-15 | open | S | `apply_palette(method="lut3d")` silently ignores the `chunk_pixels` argument (the LUT path indexes the whole image at once). Either raise `ValueError` when both are passed non-default, or log a one-line warning, so users don't think they tuned a knob that did nothing. |
 | REL-16 | open | S | `_run_batch_mode` in `legome/cli.py` is typed as `(args, in_dir: Path)` with no return annotation and `args` untyped. Add `-> int` and import `argparse.Namespace` for the annotation; matches `main`'s contract. |
+| REL-17 | done | S | `legome/processor.py:77` imported `scipy.spatial.cKDTree`, which is a deprecated alias and not exposed by current scipy type stubs (pyright/Pylance `reportAttributeAccessIssue`). Switched to `scipy.spatial.KDTree` (same C-backed implementation since scipy 1.6). |
 
 ## observability
 
