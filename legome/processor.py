@@ -30,7 +30,7 @@ def build_lut(palette: Palette) -> np.ndarray:
     import numpy as np
 
     arr = np.array(palette.lut, dtype=np.uint8)
-    if arr.shape != (LUT_SIZE, 3):
+    if arr.shape != (LUT_SIZE, 3):  # pragma: no cover - guarded by Palette.lut
         raise ValueError(f"LUT shape mismatch: {arr.shape}")
     bgr = arr[:, ::-1]
     return bgr.reshape(LUT_SIZE, 1, 3)

@@ -11,6 +11,7 @@ from legome.build_plan import (
     LEGO_UNIT_ASPECT,
     MIN_CELL_W_PX,
     _excel_column,
+    _fit_text,
     _luminance,
     _text_color,
     render_build_plan,
@@ -152,6 +153,23 @@ def test_cli_build_plan_ignored_in_batch_mode(tmp_path, caplog):
         rc = main([str(in_dir), str(out_dir), "--no-display", "--build-plan", str(tmp_path / "plan.png")])
     assert rc == 0
     assert any("ignored in batch mode" in m for m in caplog.messages)
+
+
+def test_fit_text_empty_returns_blank():
+    """Empty input string short-circuits to ('', 0.5)."""
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    assert _fit_text("", 100, 30, font, 1) == ("", 0.5)
+
+
+def test_fit_text_truncates_to_question_mark_when_too_narrow():
+    """No scale + no truncation fits → fall through to '?' fallback."""
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    # max_w=1 px is narrower than even a single rendered char at the minimum
+    # scale (0.3), so every candidate (including the empty truncation) fails
+    # the width check and the function returns the sentinel '?'.
+    fitted, scale = _fit_text("WWWWW", 1, 30, font, 1)
+    assert fitted == "?"
+    assert scale == 0.3
 
 
 def test_cli_build_plan_cell_too_small(tmp_path, monkeypatch):

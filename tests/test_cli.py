@@ -169,6 +169,90 @@ def test_main_no_arguments_prints_help(capsys):
     assert "--no-display" in out
 
 
+def test_main_build_plan_imwrite_failure(tmp_path, monkeypatch):
+    """cv2.imwrite refuses the build-plan file → exit 4 (OSError caught in run_single)."""
+    src = tmp_path / "in.png"
+    dst = tmp_path / "out.png"
+    _write_image(src)
+
+    calls = {"n": 0}
+
+    def fake_imwrite(path, _img):
+        calls["n"] += 1
+        # First call writes the recolored image (succeeds); second call writes
+        # the build plan (fails) so the OSError branch is exercised.
+        return calls["n"] == 1
+
+    monkeypatch.setattr(cv2, "imwrite", fake_imwrite)
+    rc = cli.main(
+        [str(src), str(dst), "--no-display", "--build-plan", str(tmp_path / "plan.png")]
+    )
+    assert rc == 4
+    assert calls["n"] == 2
+
+
+def test_main_display_path_with_build_plan(tmp_path, monkeypatch):
+    """`_maybe_show` must pass the build-plan canvas (not the mosaic) to display."""
+    src = tmp_path / "in.png"
+    dst = tmp_path / "out.png"
+    _write_image(src)
+    captured = {}
+
+    def fake_show(img, **kw):
+        captured["title"] = kw.get("title")
+        captured["shape"] = img.shape
+        return True
+
+    monkeypatch.setattr("legome.display.show_image", fake_show)
+    rc = cli.main([str(src), str(dst), "--build-plan", str(tmp_path / "plan.png")])
+    assert rc == 0
+    assert captured["title"] == "LegoMe build plan"
+
+
+def test_batch_palette_load_failure(tmp_path):
+    """Batch mode propagates palette load failures as exit 2."""
+    in_dir = tmp_path / "in"
+    in_dir.mkdir()
+    _write_image(in_dir / "a.png")
+    bad_pal = tmp_path / "bad.json"
+    bad_pal.write_text("[]")
+    rc = cli.main([
+        str(in_dir),
+        str(tmp_path / "out"),
+        "--palette", str(bad_pal),
+        "--no-display",
+    ])
+    assert rc == 2
+
+
+def test_batch_resize_parse_failure(tmp_path):
+    """Bad --resize spec in batch mode → exit 2."""
+    in_dir = tmp_path / "in"
+    in_dir.mkdir()
+    _write_image(in_dir / "a.png")
+    rc = cli.main([
+        str(in_dir),
+        str(tmp_path / "out"),
+        "--no-display",
+        "--resize", "not-a-spec",
+    ])
+    assert rc == 2
+
+
+def test_batch_no_images_found(tmp_path, caplog):
+    """Empty input directory → exit 0 with `no images processed` warning."""
+    import logging
+
+    in_dir = tmp_path / "in"
+    out_dir = tmp_path / "out"
+    in_dir.mkdir()
+    # No image files inside in_dir.
+    with caplog.at_level(logging.WARNING):
+        rc = cli.main([str(in_dir), str(out_dir), "--no-display"])
+    assert rc == 0
+    assert any("no images processed" in m for m in caplog.messages)
+
+
 def test_main_default_palette_is_lego_only(tmp_path, monkeypatch):
     """When --palette is omitted, output uses only real Lego brick colors."""
     src = tmp_path / "in.png"

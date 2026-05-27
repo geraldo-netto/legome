@@ -61,6 +61,20 @@ markers = [
 ]
 addopts = "-ra"
 
+[tool.coverage.run]
+source = ["legome"]
+# __main__.py is exercised end-to-end via `python -m legome` subprocess
+# tests; coverage.py does not collect from those subprocesses, so the
+# module is excluded rather than asserted unreachable with `pragma`.
+omit = ["legome/__main__.py"]
+
+[tool.coverage.report]
+exclude_also = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
+
 [tool.mypy]
 python_version = "3.10"
 strict_optional = true

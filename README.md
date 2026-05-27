@@ -194,7 +194,7 @@ legome/
 benchmarks/                    # perf regression baseline (bench_perf.py + RESULTS.md)
 scripts/build_palettes.py      # regenerate the derived palette files
 example/{input.jpg,output.png}
-tests/                         # 162 tests, 96% coverage, Hypothesis fuzz
+tests/                         # 172 tests, 100% coverage, Hypothesis fuzz
 pyproject.toml                 # PEP 621 build, console_scripts, dev extras
 .github/workflows/ci.yml       # GH Actions: ruff + mypy + pytest x py3.10/11/12
 .pre-commit-config.yaml        # ruff, ruff-format, mypy, yaml/toml lint
@@ -204,7 +204,7 @@ pyproject.toml                 # PEP 621 build, console_scripts, dev extras
 
 ```bash
 pip install -e .[dev]
-python3 -m pytest tests/ --cov=legome      # 162 tests, 96% cov
+python3 -m pytest tests/ --cov=legome      # 172 tests, 100% cov
 python3 -m mypy legome/                    # clean
 ruff check legome/ tests/                  # clean
 ```

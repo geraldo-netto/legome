@@ -11,6 +11,7 @@ import pytest
 from legome.batch import (
     BatchResult,
     BatchTask,
+    _init_worker,
     _process_one,
     discover_inputs,
     run_batch,
@@ -32,22 +33,47 @@ def test_discover_inputs_filters_by_extension(tmp_path):
 
 
 def test_process_one_writes_png(tmp_path):
-    pal = lego_palette()
+    _init_worker(lego_palette())
     src = tmp_path / "in.png"
     dst = tmp_path / "out.png"
     _write_png(src)
-    res = _process_one(BatchTask(src=src, dst=dst, palette=pal, resize=None))
+    res = _process_one(BatchTask(src=src, dst=dst, resize=None))
     assert res.status == "ok"
     assert dst.is_file()
 
 
 def test_process_one_decode_failure(tmp_path):
-    pal = lego_palette()
+    _init_worker(lego_palette())
     src = tmp_path / "in.png"
     src.write_text("not an image")
     dst = tmp_path / "out.png"
-    res = _process_one(BatchTask(src=src, dst=dst, palette=pal, resize=None))
+    res = _process_one(BatchTask(src=src, dst=dst, resize=None))
     assert res.status == "decode_failed"
+
+
+def test_process_one_requires_init_worker(tmp_path):
+    """SEC-02: _process_one must refuse to run if no palette was installed."""
+    import legome.batch as batch_mod
+
+    src = tmp_path / "in.png"
+    _write_png(src)
+    saved = batch_mod._WORKER_PALETTE
+    batch_mod._WORKER_PALETTE = None
+    try:
+        with pytest.raises(RuntimeError, match="_init_worker"):
+            _process_one(BatchTask(src=src, dst=tmp_path / "out.png", resize=None))
+    finally:
+        batch_mod._WORKER_PALETTE = saved
+
+
+def test_process_one_write_failure(tmp_path, monkeypatch):
+    """write_failed branch — cv2.imwrite returns False."""
+    _init_worker(lego_palette())
+    src = tmp_path / "in.png"
+    _write_png(src)
+    monkeypatch.setattr("cv2.imwrite", lambda _path, _img: False)
+    res = _process_one(BatchTask(src=src, dst=tmp_path / "out.png", resize=None))
+    assert res.status == "write_failed"
 
 
 def test_run_batch_sequential(tmp_path):

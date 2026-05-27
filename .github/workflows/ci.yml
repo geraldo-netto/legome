@@ -61,8 +61,8 @@ jobs:
       - name: Pytest (slow / subprocess, append coverage)
         env:
           QT_QPA_PLATFORM: offscreen
-        # QA-02: combined cov across fast + slow runs must be >= 95%.
-        run: pytest tests/ --cov=legome --cov-append --cov-report=term-missing --cov-fail-under=95 -m slow
+        # QA-02: combined cov across fast + slow runs must be 100%.
+        run: pytest tests/ --cov=legome --cov-append --cov-report=term-missing --cov-fail-under=100 -m slow
 
   build-wheel:
     name: build sdist + wheel

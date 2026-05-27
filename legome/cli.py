@@ -118,7 +118,10 @@ def _build_parser() -> argparse.ArgumentParser:
 def _resolve_palette(palette_arg: str | None) -> Palette:
     if palette_arg is None:
         return lego_palette()
-    p = Path(palette_arg)
+    # SEC-01: match how `input`/`output` are normalized — expand `~` and
+    # resolve to an absolute path so `~/p.json` works and relative paths
+    # are unambiguous in error messages.
+    p = Path(palette_arg).expanduser().resolve(strict=False)
     if p.suffix.lower() == ".gpl":
         from .gpl import load_gpl
 

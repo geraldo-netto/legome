@@ -6,9 +6,11 @@ corresponding name in the output directory (extension forced to `.png`,
 since JPEG is lossy for quantized palettes — see REL-14).
 
 Parallelism: a `concurrent.futures.ProcessPoolExecutor` spreads the work
-across `--jobs` workers (default: `os.cpu_count()`). Each worker
-processes one image end-to-end. The palette is pickled to the workers
-once, then re-used for every image they handle.
+across `--jobs` workers (default: `os.cpu_count()`). SEC-02: the palette
+is pickled once per worker via the pool `initializer=` and stashed in a
+module-level slot; per-task pickles only carry the lightweight
+`BatchTask` (paths + resize spec). This avoids re-shipping the full
+`Palette` (and its color tuple) with every image dispatched to the pool.
 """
 
 from __future__ import annotations
@@ -32,7 +34,6 @@ SUPPORTED_INPUT_EXTENSIONS = frozenset(
 class BatchTask:
     src: Path
     dst: Path
-    palette: Palette
     resize: tuple[int, int] | None
 
 
@@ -42,6 +43,18 @@ class BatchResult:
     dst: Path
     status: str  # "ok" | "decode_failed" | "write_failed"
     message: str = ""
+
+
+# SEC-02: populated once per worker (or once for the main process when running
+# sequentially) by `_init_worker`. `_process_one` reads from this slot instead
+# of receiving the palette through `BatchTask`.
+_WORKER_PALETTE: Palette | None = None
+
+
+def _init_worker(palette: Palette) -> None:
+    """Pool initializer — stash the palette in the worker's module state."""
+    global _WORKER_PALETTE
+    _WORKER_PALETTE = palette
 
 
 def discover_inputs(in_dir: Path) -> list[Path]:
@@ -59,12 +72,19 @@ def _process_one(task: BatchTask) -> BatchResult:
     from .processor import apply_palette
     from .resize import resize_image
 
+    palette = _WORKER_PALETTE
+    if palette is None:
+        raise RuntimeError(
+            "_init_worker(palette) must run before _process_one — call it via "
+            "the pool initializer= or directly before sequential dispatch"
+        )
+
     image = cv2.imread(str(task.src))
     if image is None:
         return BatchResult(task.src, task.dst, "decode_failed", "cv2.imread returned None")
     if task.resize is not None:
         image = resize_image(image, task.resize)
-    recolored = apply_palette(image, task.palette)
+    recolored = apply_palette(image, palette)
     if not cv2.imwrite(str(task.dst), recolored):
         return BatchResult(task.src, task.dst, "write_failed", f"cv2.imwrite refused {task.dst}")
     return BatchResult(task.src, task.dst, "ok")
@@ -88,13 +108,16 @@ def run_batch(
         return []
     out_dir.mkdir(parents=True, exist_ok=True)
     tasks = [
-        BatchTask(src=p, dst=out_dir / f"{p.stem}.png", palette=palette, resize=resize)
+        BatchTask(src=p, dst=out_dir / f"{p.stem}.png", resize=resize)
         for p in inputs
     ]
     n_workers = jobs if jobs is not None else (os.cpu_count() or 1)
     n_workers = max(1, n_workers)
     log.info("batch: %d files, %d workers", len(tasks), n_workers)
     if n_workers == 1:
+        _init_worker(palette)
         return [_process_one(t) for t in tasks]
-    with ProcessPoolExecutor(max_workers=n_workers) as ex:
+    with ProcessPoolExecutor(
+        max_workers=n_workers, initializer=_init_worker, initargs=(palette,)
+    ) as ex:
         return list(ex.map(_process_one, tasks))

@@ -105,7 +105,7 @@ def bricklink_url(color: LegoColor) -> str | None:
 def _assert_unique_rgbs() -> None:
     seen: dict = {}
     for c in LEGO_COLORS:
-        if c.rgb in seen:
+        if c.rgb in seen:  # pragma: no cover - import-time invariant on LEGO_COLORS
             raise RuntimeError(
                 f"duplicate Lego RGB {c.rgb}: '{c.name}' and '{seen[c.rgb]}' — "
                 "merge one as an alias"

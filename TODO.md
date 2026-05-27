@@ -6,14 +6,11 @@ Status: `open` | `in-progress`. Effort: `S` (<1h) | `M` (1-4h) | `L` (>4h).
 
 Closed items (done / wontfix) are removed from this board — the commit history is the record. Add new findings under the matching category before reporting in chat.
 
-Last rescan: 2026-05-27 (post pyright + C90 sweep).
+Last rescan: 2026-05-27 (post SEC + 100% coverage sweep).
 
 ## security
 
-| id | status | effort | description |
-|----|--------|--------|-------------|
-| SEC-01 | open | S | `_resolve_palette` accepts any user-supplied `--palette` path; `Path(...).expanduser()` is not called, so `~/p.json` is treated as a literal relative path that may surprise users. Apply `Path(arg).expanduser().resolve(strict=False)` before `load_palette` / `load_gpl` for parity with how `input`/`output` are handled in `legome/cli.py`. |
-| SEC-02 | open | S | `ProcessPoolExecutor` pickles `BatchTask` (which embeds the full `Palette`) per task in `legome/batch.py`. Workers receive trusted data — but switch to passing the palette once via `initializer=` to shrink the pickle surface and avoid re-shipping the same `Palette` per file. |
+_(no open findings)_
 
 ## performance
 
@@ -75,9 +72,7 @@ _(no open findings)_
 
 ## ci/automation
 
-| id | status | effort | description |
-|----|--------|--------|-------------|
-| CI-05 | open | S | `README.md` advertises `.pre-commit-config.yaml`, but the file does not exist. Either add the file (ruff + ruff-format + mypy hooks) or remove the line from the README "Project layout" block. |
+_(no open findings)_
 
 ## quality assurance
 
