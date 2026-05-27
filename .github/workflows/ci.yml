@@ -38,10 +38,13 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             libglib2.0-0 libsm6 libxext6 libxrender1 libgl1
 
-      - name: Install package + dev extras
+      - name: Install package + dev + perf extras
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          # QA-02: install `perf` so scipy is available — without it
+          # `_build_3d_lut` falls back to the numpy path and the KDTree
+          # try-branch lines stay uncovered, blowing the 100 % gate.
+          pip install -e ".[dev,perf]"
           pip install opencv-python-headless
 
       - name: Ruff (lint)
