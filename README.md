@@ -1,6 +1,6 @@
 # legome
 
-[![ci](https://github.com/legome/legome/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/legome/legome/actions/workflows/ci.yml)
+[![ci](https://github.com/geraldo-netto/legome/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/geraldo-netto/legome/actions/workflows/ci.yml)
 
 Quantize any image to a Lego brick color palette. Use the result as a build
 plan for a Lego "painting" / mosaic.
@@ -18,7 +18,7 @@ piece you can actually order.
 From a clone (no install, dev/edit loop):
 
 ```bash
-git clone https://github.com/legome/legome
+git clone https://github.com/geraldo-netto/legome
 cd legome
 pip3 install numpy opencv-python
 python3 -m legome example/input.jpg example/output.png
@@ -130,8 +130,8 @@ gathered back into a uint8 image.
 `apply_palette` auto-picks the fastest implementation given the image size
 (threshold ~2 MP). The chunked broadcast quantizer wins on small images;
 above the threshold, a 256³ BGR → palette LUT is built once via
-`scipy.spatial.cKDTree` and indexed per-pixel. Pass `method="broadcast"`
-or `method="lut3d"` to override.
+`scipy.spatial.KDTree` and indexed per-pixel (cached across calls in batch
+mode). Pass `method="broadcast"` or `method="lut3d"` to override.
 
 Microbenchmarks (see `benchmarks/RESULTS.md` for the full table):
 
@@ -194,7 +194,7 @@ legome/
 benchmarks/                    # perf regression baseline (bench_perf.py + RESULTS.md)
 scripts/build_palettes.py      # regenerate the derived palette files
 example/{input.jpg,output.png}
-tests/                         # 131 tests, ~99% coverage, Hypothesis fuzz
+tests/                         # 162 tests, 96% coverage, Hypothesis fuzz
 pyproject.toml                 # PEP 621 build, console_scripts, dev extras
 .github/workflows/ci.yml       # GH Actions: ruff + mypy + pytest x py3.10/11/12
 .pre-commit-config.yaml        # ruff, ruff-format, mypy, yaml/toml lint
@@ -204,7 +204,7 @@ pyproject.toml                 # PEP 621 build, console_scripts, dev extras
 
 ```bash
 pip install -e .[dev]
-python3 -m pytest tests/ --cov=legome      # 95 tests, 99% cov
+python3 -m pytest tests/ --cov=legome      # 162 tests, 96% cov
 python3 -m mypy legome/                    # clean
 ruff check legome/ tests/                  # clean
 ```

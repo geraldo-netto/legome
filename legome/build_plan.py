@@ -234,11 +234,12 @@ def render_build_plan(
     grid_w = cols * cell_w_px
     grid_h = rows * cell_h_px
     color_for = _build_color_lookup()
-    counts: Counter[tuple[int, int, int]] = Counter()
-    for row in range(rows):
-        for col in range(cols):
-            px = quantized_bgr[row, col]
-            counts[(int(px[0]), int(px[1]), int(px[2]))] += 1
+    # PERF-08: O(N+M) numpy unique replaces O(N) Python tuple-keyed Counter.
+    flat = quantized_bgr.reshape(-1, 3)
+    uniq, uniq_counts = np.unique(flat, axis=0, return_counts=True)
+    counts: Counter[tuple[int, int, int]] = Counter(
+        {(int(b), int(g), int(r)): int(c) for (b, g, r), c in zip(uniq, uniq_counts, strict=True)}
+    )
 
     legend_rows = (len(counts) + 1) if show_legend else 0
     legend_h = legend_rows * 24 + (20 if show_legend else 0)

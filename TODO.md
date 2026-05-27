@@ -4,7 +4,7 @@ Review findings per `AGENTS.md` categories. Format: `id | status | effort | desc
 
 Status: `open` | `in-progress` | `done` | `wontfix`. Effort: `S` (<1h) | `M` (1-4h) | `L` (>4h).
 
-Last rescan: 2026-05-23 (fresh-repo scan; no prior history).
+Last rescan: 2026-05-27 (post pyright + C90 sweep).
 
 ## security
 
@@ -17,8 +17,8 @@ Last rescan: 2026-05-23 (fresh-repo scan; no prior history).
 
 | id | status | effort | description |
 |----|--------|--------|-------------|
-| PERF-07 | open | S | `_build_3d_lut` rebuilds the 256³ BGR→palette table (~64 MB + KDTree query) on every `apply_palette` call when `n_pixels >= LUT3D_BREAKEVEN_PIXELS`. In batch mode the same palette is used for every image; cache the LUT keyed on `palette_bgr_unique(palette).tobytes()` (or per-worker module-level memo). |
-| PERF-08 | open | S | `render_build_plan` counts bricks via a nested Python `for row/col` loop over `quantized_bgr`. Replace with `np.unique(quantized_bgr.reshape(-1, 3), axis=0, return_counts=True)` for O(N) numpy instead of O(N) Python. |
+| PERF-07 | done | S | `_build_3d_lut` now memoizes the (256³,3) LUT in a 1-slot module-level cache keyed on `palette_bgr.tobytes()`. Batch mode pays the ~64 MB build + KDTree query once per palette instead of once per image. |
+| PERF-08 | done | S | `render_build_plan` brick counts switched from a nested Python `for row/col` loop to `np.unique(flat, axis=0, return_counts=True)` — O(N+M) numpy instead of O(N) Python tuple construction. |
 
 ## scalability
 
@@ -32,13 +32,13 @@ _(no open findings — `ProcessPoolExecutor` workers share no mutable state.)_
 
 | id | status | effort | description |
 |----|--------|--------|-------------|
-| COMP-01 | open | M | `cli.main()` in `legome/cli.py` is ~90 lines and weaves input/output validation, palette resolve, cv2 import, decode, resize, quantize, write, build-plan, and display — well above the `<= 10` complexity target in `AGENTS.md`. Extract a `run_single(args) -> int` helper and let `main` only parse + dispatch. |
+| COMP-01 | done | M | `cli.main()` split into `main` (parse + dispatch) + `run_single` (single-image pipeline) + small helpers (`_acquire_image`, `_render_and_write_plan`, `_maybe_show`). All ≤10 mccabe, enforced via ruff `C90` (QA-01). `load_gpl` was also split (`_parse_color_row`, `_parse_palette_entries`) to satisfy the same gate. |
 
 ## code duplication
 
 | id | status | effort | description |
 |----|--------|--------|-------------|
-| DUP-01 | open | S | Palette resolution + `log.info("palette '%s' with %d colors...")` is duplicated between `main` and `_run_batch_mode` in `legome/cli.py`. Lift into a `_load_and_log_palette(args)` helper. |
+| DUP-01 | done | S | `_load_and_log_palette(args)` helper in `legome/cli.py` now owns palette resolution + the info-line log; both `run_single` and `_run_batch_mode` call it. |
 
 ## architecture/modularity/SOLID
 
@@ -58,8 +58,8 @@ _(no open findings — cv2/numpy/scipy imports are localized to the call sites t
 
 | id | status | effort | description |
 |----|--------|--------|-------------|
-| REL-15 | open | S | `apply_palette(method="lut3d")` silently ignores the `chunk_pixels` argument (the LUT path indexes the whole image at once). Either raise `ValueError` when both are passed non-default, or log a one-line warning, so users don't think they tuned a knob that did nothing. |
-| REL-16 | open | S | `_run_batch_mode` in `legome/cli.py` is typed as `(args, in_dir: Path)` with no return annotation and `args` untyped. Add `-> int` and import `argparse.Namespace` for the annotation; matches `main`'s contract. |
+| REL-15 | done | S | `apply_palette(method="lut3d", chunk_pixels != DEFAULT)` now raises `ValueError`; the lut3d path indexes the whole image at once, so the knob had no effect. |
+| REL-16 | done | S | `_run_batch_mode` and the new CLI helpers (`run_single`, `_acquire_image`, `_render_and_write_plan`, `_maybe_show`) are fully typed with `argparse.Namespace` / `np.ndarray` / `-> int` annotations. |
 | REL-17 | done | S | `legome/processor.py:77` imported `scipy.spatial.cKDTree`, which is a deprecated alias and not exposed by current scipy type stubs (pyright/Pylance `reportAttributeAccessIssue`). Switched to `scipy.spatial.KDTree` (same C-backed implementation since scipy 1.6). |
 
 ## observability
@@ -90,8 +90,8 @@ _(no open findings — cv2/numpy/scipy imports are localized to the call sites t
 
 | id | status | effort | description |
 |----|--------|--------|-------------|
-| PKG-01 | open | S | `processor._build_3d_lut` uses `scipy.spatial.cKDTree` for the fast path (with a documented numpy fallback), but `scipy` is absent from both `dependencies` and `optional-dependencies` in `pyproject.toml`. Add `scipy>=1.11` to a `perf` extra so the fast path is reproducible from a wheel install. |
-| PKG-02 | open | S | `pyproject.toml` `Source = "https://github.com/legome/legome"` is a placeholder; the org does not exist. Update to the real upstream URL once known, or drop the entry. |
+| PKG-01 | done | S | `pyproject.toml` now declares `[project.optional-dependencies] perf = ["scipy>=1.11"]`; `pip install legome[perf]` enables the cached 3D-LUT fast path. |
+| PKG-02 | done | S | `pyproject.toml` `Source` URL points at the real upstream `https://github.com/geraldo-netto/legome`. |
 
 ## ci/automation
 
@@ -105,8 +105,8 @@ _(no open findings — cv2/numpy/scipy imports are localized to the call sites t
 
 | id | status | effort | description |
 |----|--------|--------|-------------|
-| QA-01 | open | S | `AGENTS.md` mandates cyclomatic complexity ≤ 10, but `[tool.ruff.lint] select` only lists `E,F,W,I,UP,B,SIM`. Add `"C90"` and `tool.ruff.lint.mccabe.max-complexity = 10` so the rule is enforced (would surface COMP-01). |
-| QA-02 | open | S | No coverage gate is wired into CI; `pytest-cov` is a dev dep but nothing fails the build below a threshold. Add `--cov=legome --cov-fail-under=95` to the pytest step once CI-04 is wired up. |
+| QA-01 | done | S | `pyproject.toml` ruff lint now selects `C90` with `mccabe.max-complexity = 10`; surfaced and forced fixes for `cli.main` (COMP-01) and `gpl.load_gpl`. |
+| QA-02 | done | S | `.github/workflows/ci.yml` runs fast tests then slow tests with `--cov-append`; the slow step adds `--cov-fail-under=95`. Combined coverage is currently 96%. |
 
 ## documentation
 
@@ -114,5 +114,5 @@ _(no open findings — cv2/numpy/scipy imports are localized to the call sites t
 |----|--------|--------|-------------|
 | DOC-01 | wontfix | S | Dedicated `CHANGELOG.md` rejected. `git log` and the per-commit messages already document the change history at a finer granularity than a Keep-a-Changelog file would; maintaining both would risk drift. Recorded so future scans do not re-propose it. |
 | DOC-03 | open | S | Well-known Bricklink IDs are populated in `legome.lego_colors.LEGO_COLORS`, but ~10 niche entries (e.g. `Earth Green`, `Earth Blue`, `Flame Yellowish Orange`) still have `bricklink_id=None`. Verify against https://www.bricklink.com/catalogColors.asp and fill in the remaining IDs. |
-| DOC-04 | open | S | `README.md` CI badge URL (`https://github.com/legome/legome/actions/workflows/ci.yml`) points at a placeholder org/repo. Update once the canonical upstream is published (paired with PKG-02). |
-| DOC-05 | open | S | `README.md` "Tests, lint, type-check" section claims `95 tests, 99% cov` and the "Project layout" block separately claims `131 tests, ~99% coverage`. Pick one source of truth (the pytest run) and align both lines. |
+| DOC-04 | done | S | `README.md` CI badge + clone URLs updated to `geraldo-netto/legome` (matches PKG-02). |
+| DOC-05 | done | S | `README.md` "Project layout" and "Tests, lint, type-check" now both report `162 tests, 96% cov` from a single combined pytest run. |

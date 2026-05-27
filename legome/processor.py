@@ -62,14 +62,28 @@ broadcast wins (~5 s vs ~8 s); at 2048x2048 the LUT wins (~8 s vs ~18 s). See
 benchmarks/RESULTS.md."""
 
 
+# PERF-07: cache the 256^3 LUT keyed on the palette bytes. Batch mode reuses
+# the same palette across N images; rebuilding the ~64 MB LUT + KDTree query
+# each call dominated wall-clock for batches of small images. One slot is
+# sufficient — batch always uses one palette per run — so this is a 1-entry
+# memo rather than an unbounded dict.
+_LUT3D_CACHE: dict[bytes, np.ndarray] = {}
+
+
 def _build_3d_lut(palette_bgr: np.ndarray) -> np.ndarray:
     """Build a 256^3 BGR -> nearest-palette-color LUT (uint8, shape 256^3,3).
 
     Uses scipy.spatial.KDTree when available; falls back to chunked numpy
     broadcasting otherwise. Build cost: one-time ~0.5-2 s; lookup is then
-    O(1) per pixel.
+    O(1) per pixel. Result is memoized in `_LUT3D_CACHE` keyed on the palette
+    bytes so batch mode pays the build cost once.
     """
     import numpy as np
+
+    key = palette_bgr.tobytes()
+    cached = _LUT3D_CACHE.get(key)
+    if cached is not None:
+        return cached
 
     # Build a (256^3, 3) grid of all possible BGR values.
     grid = np.indices((256, 256, 256), dtype=np.int32).reshape(3, -1).T
@@ -85,6 +99,10 @@ def _build_3d_lut(palette_bgr: np.ndarray) -> np.ndarray:
             d2 = ((chunk[:, None, :] - palette_bgr[None, :, :]) ** 2).sum(axis=2)
             idx[i : i + step] = d2.argmin(axis=1)
     lut: np.ndarray = palette_bgr[idx].astype(np.uint8)
+    # One-slot memo: drop any stale palette before inserting the new one so
+    # the cache never grows beyond ~64 MB.
+    _LUT3D_CACHE.clear()
+    _LUT3D_CACHE[key] = lut
     return lut
 
 
@@ -117,6 +135,14 @@ def apply_palette(
         raise ValueError(f"chunk_pixels must be >= 1, got {chunk_pixels}")
     if method not in {"auto", "broadcast", "lut3d"}:
         raise ValueError(f"method must be one of auto/broadcast/lut3d, got {method!r}")
+    # REL-15: the lut3d path indexes the whole image at once and ignores
+    # `chunk_pixels`. Reject the combination so callers don't think they tuned
+    # a knob that has no effect.
+    if method == "lut3d" and chunk_pixels != DEFAULT_CHUNK_PIXELS:
+        raise ValueError(
+            f"chunk_pixels is ignored when method='lut3d' (got {chunk_pixels}); "
+            f"use method='broadcast' to control chunk size"
+        )
 
     pal_bgr = palette_bgr_unique(palette)
     flat = image.reshape(-1, 3)

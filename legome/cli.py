@@ -8,6 +8,7 @@ import os
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from . import __version__
 from .batch import run_batch
@@ -19,6 +20,9 @@ from .palette import (
     load_palette,
 )
 from .resize import PAPER_SIZES, parse_resize_arg, resize_image
+
+if TYPE_CHECKING:  # pragma: no cover
+    import numpy as np
 
 log = logging.getLogger("legome")
 
@@ -141,6 +145,157 @@ def _validate_output_path(raw: str) -> Path:
     return p
 
 
+def _load_and_log_palette(args: argparse.Namespace) -> Palette:
+    """DUP-01: resolve palette + log the standard summary line.
+
+    Shared between single-image and batch modes so the two stay in lockstep.
+    Raises `FileNotFoundError` / `ValueError` from the underlying loader.
+    """
+    palette = _resolve_palette(args.palette)
+    log.info(
+        "palette '%s' with %d colors (%d unique)",
+        palette.name,
+        len(palette.colors),
+        len(palette.unique_colors()),
+    )
+    return palette
+
+
+def _acquire_image(args: argparse.Namespace, in_path: Path) -> np.ndarray:
+    """Decode the input image and apply `--resize` if requested.
+
+    Raises ImportError if cv2 is unavailable, ValueError if cv2 refuses
+    to decode the file or the resize spec is malformed.
+    """
+    import cv2
+
+    image = cv2.imread(str(in_path))
+    if image is None:
+        raise ValueError(f"could not decode input image: {in_path}")
+    if args.resize is not None:
+        target = parse_resize_arg(args.resize)
+        log.info("resizing %s -> %s", image.shape[:2][::-1], target)
+        image = resize_image(image, target)
+    return image
+
+
+def _render_and_write_plan(args: argparse.Namespace, recolored: np.ndarray) -> np.ndarray:
+    """Render and write a build-plan PNG. Raises OSError if cv2.imwrite refuses."""
+    import cv2
+
+    from .build_plan import DEFAULT_CELL_W_PX, render_build_plan
+
+    cell = (
+        args.build_plan_cell_px
+        if args.build_plan_cell_px is not None
+        else DEFAULT_CELL_W_PX
+    )
+    plan = render_build_plan(recolored, cell_w_px=cell)
+    plan_path = Path(args.build_plan).expanduser().resolve(strict=False).with_suffix(".png")
+    if not cv2.imwrite(str(plan_path), plan):
+        raise OSError(f"could not write build plan: {plan_path}")
+    log.info("wrote build plan %s", plan_path)
+    return plan
+
+
+def _maybe_show(args: argparse.Namespace, recolored: np.ndarray, plan: np.ndarray | None) -> None:
+    if args.no_display:
+        return
+    from .display import show_image
+
+    if plan is not None:
+        show_image(plan, title="LegoMe build plan")
+    else:
+        show_image(recolored)
+
+
+def run_single(args: argparse.Namespace) -> int:
+    """Single-image pipeline: validate I/O → load palette → decode → quantize → write."""
+    try:
+        in_path = _validate_input_path(args.input)
+        out_path = _validate_output_path(args.output)
+    except (FileNotFoundError, IsADirectoryError, PermissionError) as exc:
+        log.error("%s", exc)
+        return 2
+
+    reconcile_input_extension(in_path)
+    out_path = reconcile_output_extension(out_path)
+
+    try:
+        palette = _load_and_log_palette(args)
+    except (FileNotFoundError, ValueError) as exc:
+        log.error("palette load failed: %s", exc)
+        return 2
+
+    try:
+        image = _acquire_image(args, in_path)
+    except ImportError:
+        log.error("OpenCV (cv2) not installed: pip install opencv-python")
+        return 3
+    except ValueError as exc:
+        log.error("%s", exc)
+        return 2
+
+    import cv2
+
+    from .processor import apply_palette
+
+    recolored = apply_palette(image, palette)
+    if not cv2.imwrite(str(out_path), recolored):
+        log.error("could not write output image: %s", out_path)
+        return 4
+    log.info("wrote %s", out_path)
+
+    plan: np.ndarray | None = None
+    if args.build_plan is not None:
+        try:
+            plan = _render_and_write_plan(args, recolored)
+        except ValueError as exc:
+            log.error("%s", exc)
+            return 2
+        except OSError as exc:
+            log.error("%s", exc)
+            return 4
+
+    _maybe_show(args, recolored, plan)
+    return 0
+
+
+def _report_batch_results(results: list) -> int:
+    bad = [r for r in results if r.status != "ok"]
+    for r in bad:
+        log.error("%s: %s (%s)", r.src, r.status, r.message)
+    log.info("batch: %d ok, %d failed", len(results) - len(bad), len(bad))
+    return 5 if bad else 0
+
+
+def _run_batch_mode(args: argparse.Namespace, in_dir: Path) -> int:
+    out_raw = Path(args.output).expanduser()
+    if out_raw.exists() and not out_raw.is_dir():
+        log.error("input %s is a directory, but output %s is not", in_dir, out_raw)
+        return 2
+
+    try:
+        palette = _load_and_log_palette(args)
+    except (FileNotFoundError, ValueError) as exc:
+        log.error("palette load failed: %s", exc)
+        return 2
+
+    target = None
+    if args.resize is not None:
+        try:
+            target = parse_resize_arg(args.resize)
+        except ValueError as exc:
+            log.error("%s", exc)
+            return 2
+
+    results = run_batch(in_dir, out_raw, palette, resize=target, jobs=args.jobs)
+    if not results:
+        log.warning("no images processed")
+        return 0
+    return _report_batch_results(results)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     # No arguments → print help and exit 0 (more discoverable than argparse's
@@ -160,118 +315,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.build_plan is not None:
             log.warning("--build-plan is ignored in batch mode (single-image only)")
         return _run_batch_mode(args, in_raw)
-
-    try:
-        in_path = _validate_input_path(args.input)
-        out_path = _validate_output_path(args.output)
-    except (FileNotFoundError, IsADirectoryError, PermissionError) as exc:
-        log.error("%s", exc)
-        return 2
-
-    reconcile_input_extension(in_path)
-    out_path = reconcile_output_extension(out_path)
-
-    try:
-        palette = _resolve_palette(args.palette)
-    except (FileNotFoundError, ValueError) as exc:
-        log.error("palette load failed: %s", exc)
-        return 2
-    log.info("palette '%s' with %d colors (%d unique)",
-             palette.name, len(palette.colors), len(palette.unique_colors()))
-
-    try:
-        import cv2
-    except ImportError:
-        log.error("OpenCV (cv2) not installed: pip install opencv-python")
-        return 3
-
-    image = cv2.imread(str(in_path))
-    if image is None:
-        log.error("could not decode input image: %s", in_path)
-        return 2
-
-    if args.resize is not None:
-        try:
-            target = parse_resize_arg(args.resize)
-        except ValueError as exc:
-            log.error("%s", exc)
-            return 2
-        log.info("resizing %s -> %s", image.shape[:2][::-1], target)
-        image = resize_image(image, target)
-
-    from .processor import apply_palette
-
-    recolored = apply_palette(image, palette)
-
-    if not cv2.imwrite(str(out_path), recolored):
-        log.error("could not write output image: %s", out_path)
-        return 4
-
-    log.info("wrote %s", out_path)
-
-    plan = None
-    if args.build_plan is not None:
-        from .build_plan import DEFAULT_CELL_W_PX, render_build_plan
-
-        cell = args.build_plan_cell_px if args.build_plan_cell_px is not None else DEFAULT_CELL_W_PX
-        try:
-            plan = render_build_plan(recolored, cell_w_px=cell)
-        except ValueError as exc:
-            log.error("%s", exc)
-            return 2
-        plan_path = Path(args.build_plan).expanduser().resolve(strict=False).with_suffix(".png")
-        if not cv2.imwrite(str(plan_path), plan):
-            log.error("could not write build plan: %s", plan_path)
-            return 4
-        log.info("wrote build plan %s", plan_path)
-
-    if not args.no_display:
-        from .display import show_image
-
-        if plan is not None:
-            show_image(plan, title="LegoMe build plan")
-        else:
-            show_image(recolored)
-
-    return 0
-
-
-def _run_batch_mode(args, in_dir: Path) -> int:
-    out_raw = Path(args.output).expanduser()
-    if out_raw.exists() and not out_raw.is_dir():
-        log.error("input %s is a directory, but output %s is not", in_dir, out_raw)
-        return 2
-
-    try:
-        palette = _resolve_palette(args.palette)
-    except (FileNotFoundError, ValueError) as exc:
-        log.error("palette load failed: %s", exc)
-        return 2
-    log.info("palette '%s' with %d colors (%d unique)",
-             palette.name, len(palette.colors), len(palette.unique_colors()))
-
-    target = None
-    if args.resize is not None:
-        try:
-            target = parse_resize_arg(args.resize)
-        except ValueError as exc:
-            log.error("%s", exc)
-            return 2
-
-    results = run_batch(in_dir, out_raw, palette, resize=target, jobs=args.jobs)
-    if not results:
-        log.warning("no images processed")
-        return 0
-
-    bad = [r for r in results if r.status != "ok"]
-    for r in bad:
-        log.error("%s: %s (%s)", r.src, r.status, r.message)
-    log.info("batch: %d ok, %d failed", len(results) - len(bad), len(bad))
-    return 5 if bad else 0
+    return run_single(args)
 
 
 # Re-exported so tests can patch `legome.cli.default_palette_path` if needed.
-__all__ = ["main", "default_palette_path"]
+__all__ = ["main", "run_single", "default_palette_path"]
 
 
 if __name__ == "__main__":  # pragma: no cover

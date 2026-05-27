@@ -121,3 +121,27 @@ def test_apply_palette_rejects_invalid_method():
     img = np.zeros((2, 2, 3), dtype=np.uint8)
     with pytest.raises(ValueError, match="method must be"):
         apply_palette(img, pal, method="kdtree-yolo")
+
+
+def test_apply_palette_rejects_chunk_pixels_with_lut3d():
+    """REL-15: chunk_pixels has no effect when method='lut3d'."""
+    pal = _gradient_palette()
+    img = np.zeros((2, 2, 3), dtype=np.uint8)
+    with pytest.raises(ValueError, match="chunk_pixels is ignored"):
+        apply_palette(img, pal, method="lut3d", chunk_pixels=1000)
+
+
+@pytest.mark.slow
+def test_apply_palette_lut3d_cache_reuses_lut():
+    """PERF-07: second lut3d call with same palette must hit the cache."""
+    from legome.processor import _LUT3D_CACHE
+
+    pal = _gradient_palette()
+    img = np.zeros((4, 4, 3), dtype=np.uint8)
+    _LUT3D_CACHE.clear()
+    apply_palette(img, pal, method="lut3d")
+    assert len(_LUT3D_CACHE) == 1
+    lut_before = next(iter(_LUT3D_CACHE.values()))
+    apply_palette(img, pal, method="lut3d")
+    assert len(_LUT3D_CACHE) == 1
+    assert next(iter(_LUT3D_CACHE.values())) is lut_before

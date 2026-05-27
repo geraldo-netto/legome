@@ -35,12 +35,15 @@ dev = [
     "mypy>=1.8",
     "ruff>=0.5",
 ]
+perf = [
+    "scipy>=1.11",
+]
 
 [project.scripts]
 legome = "legome.cli:main"
 
 [project.urls]
-Source = "https://github.com/legome/legome"
+Source = "https://github.com/geraldo-netto/legome"
 
 [tool.setuptools]
 include-package-data = true
@@ -74,8 +77,11 @@ line-length = 100
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C90"]
 ignore = ["E501"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["B011"]
