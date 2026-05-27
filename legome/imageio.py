@@ -16,9 +16,7 @@ from pathlib import Path
 
 log = logging.getLogger("legome.imageio")
 
-SUPPORTED_OUTPUT_EXTENSIONS = frozenset(
-    {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"}
-)
+SUPPORTED_OUTPUT_EXTENSIONS = frozenset({".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"})
 LOSSY_OUTPUT_EXTENSIONS = frozenset({".jpg", ".jpeg"})
 
 _EXT_TO_FORMAT = {

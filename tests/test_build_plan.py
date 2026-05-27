@@ -150,7 +150,9 @@ def test_cli_build_plan_ignored_in_batch_mode(tmp_path, caplog):
     in_dir.mkdir()
     cv2.imwrite(str(in_dir / "a.png"), np.full((4, 4, 3), 100, dtype=np.uint8))
     with caplog.at_level(logging.WARNING):
-        rc = main([str(in_dir), str(out_dir), "--no-display", "--build-plan", str(tmp_path / "plan.png")])
+        rc = main(
+            [str(in_dir), str(out_dir), "--no-display", "--build-plan", str(tmp_path / "plan.png")]
+        )
     assert rc == 0
     assert any("ignored in batch mode" in m for m in caplog.messages)
 
@@ -178,11 +180,15 @@ def test_cli_build_plan_cell_too_small(tmp_path, monkeypatch):
     monkeypatch.setattr("legome.display.show_image", lambda *a, **k: False)
     src = tmp_path / "in.png"
     cv2.imwrite(str(src), np.full((2, 2, 3), 60, dtype=np.uint8))
-    rc = main([
-        str(src),
-        str(tmp_path / "out.png"),
-        "--no-display",
-        "--build-plan", str(tmp_path / "plan.png"),
-        "--build-plan-cell-px", "20",
-    ])
+    rc = main(
+        [
+            str(src),
+            str(tmp_path / "out.png"),
+            "--no-display",
+            "--build-plan",
+            str(tmp_path / "plan.png"),
+            "--build-plan-cell-px",
+            "20",
+        ]
+    )
     assert rc == 2

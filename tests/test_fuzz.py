@@ -76,11 +76,7 @@ def test_fuzz_palette_construction_accepts_any_valid_lut(lut_list):
 
 
 @settings(max_examples=20, deadline=None, suppress_health_check=[HealthCheck.too_slow])
-@given(
-    st.integers(min_value=-100, max_value=400).filter(
-        lambda x: x < 0 or x > 255
-    )
-)
+@given(st.integers(min_value=-100, max_value=400).filter(lambda x: x < 0 or x > 255))
 def test_fuzz_palette_rejects_out_of_range(bad_channel):
     lut = [(0, 0, 0)] * (LUT_SIZE - 1) + [(0, 0, bad_channel)]
     with pytest.raises(ValueError):

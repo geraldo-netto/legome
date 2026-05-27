@@ -96,9 +96,7 @@ def _build_color_lookup() -> dict[tuple[int, int, int], LegoColor]:
     return {(c.rgb[2], c.rgb[1], c.rgb[0]): c for c in LEGO_COLORS}
 
 
-def _draw_cell(
-    canvas, top_left, cell_w, cell_h, bgr, color: LegoColor | None, coord: str
-) -> None:
+def _draw_cell(canvas, top_left, cell_w, cell_h, bgr, color: LegoColor | None, coord: str) -> None:
     """Draw a single brick cell with 4 stacked text rows.
 
     Line order from the TOP of the cell:
@@ -174,7 +172,9 @@ def _draw_legend(canvas, origin, width, counts, color_for) -> int:
     swatch_w = 28
     pad = 10
     header = "brick    id   count  color name"
-    cv2.putText(canvas, header, (x0 + pad, y0 + row_h - 4), font, 0.5, MARGIN_FG_BGR, 1, cv2.LINE_AA)
+    cv2.putText(
+        canvas, header, (x0 + pad, y0 + row_h - 4), font, 0.5, MARGIN_FG_BGR, 1, cv2.LINE_AA
+    )
     cv2.line(canvas, (x0, y0 + row_h), (x0 + width, y0 + row_h), MARGIN_FG_BGR, 1)
 
     y = y0 + row_h
@@ -182,17 +182,36 @@ def _draw_legend(canvas, origin, width, counts, color_for) -> int:
     for bgr, count in sorted_items:
         color = color_for.get(bgr)
         name = color.name if color is not None else "(unknown)"
-        bid = str(color.bricklink_id) if (color is not None and color.bricklink_id is not None) else "?"
-        cv2.rectangle(
-            canvas, (x0 + pad, y + 4), (x0 + pad + swatch_w, y + row_h - 4),
-            tuple(int(c) for c in bgr), thickness=-1,
+        bid = (
+            str(color.bricklink_id)
+            if (color is not None and color.bricklink_id is not None)
+            else "?"
         )
         cv2.rectangle(
-            canvas, (x0 + pad, y + 4), (x0 + pad + swatch_w, y + row_h - 4),
-            GRID_LINE_COLOR_BGR, 1,
+            canvas,
+            (x0 + pad, y + 4),
+            (x0 + pad + swatch_w, y + row_h - 4),
+            tuple(int(c) for c in bgr),
+            thickness=-1,
+        )
+        cv2.rectangle(
+            canvas,
+            (x0 + pad, y + 4),
+            (x0 + pad + swatch_w, y + row_h - 4),
+            GRID_LINE_COLOR_BGR,
+            1,
         )
         text = f"     {bid:>4}   {count:>5}  {name}"
-        cv2.putText(canvas, text, (x0 + pad + swatch_w + 6, y + row_h - 6), font, 0.5, MARGIN_FG_BGR, 1, cv2.LINE_AA)
+        cv2.putText(
+            canvas,
+            text,
+            (x0 + pad + swatch_w + 6, y + row_h - 6),
+            font,
+            0.5,
+            MARGIN_FG_BGR,
+            1,
+            cv2.LINE_AA,
+        )
         y += row_h
 
     return int(y - y0)
@@ -225,9 +244,7 @@ def render_build_plan(
     if quantized_bgr.dtype != np.uint8 or quantized_bgr.ndim != 3 or quantized_bgr.shape[2] != 3:
         raise ValueError("quantized_bgr must be HxWx3 uint8")
     if cell_w_px < MIN_CELL_W_PX:
-        raise ValueError(
-            f"cell_w_px {cell_w_px} below minimum {MIN_CELL_W_PX} (legibility floor)"
-        )
+        raise ValueError(f"cell_w_px {cell_w_px} below minimum {MIN_CELL_W_PX} (legibility floor)")
 
     rows, cols, _ = quantized_bgr.shape
     cell_h_px = round(cell_w_px * LEGO_UNIT_ASPECT)
@@ -266,10 +283,17 @@ def render_build_plan(
             canvas,
             (legend_origin[0], legend_origin[1]),
             (legend_origin[0] + grid_w, legend_origin[1] + legend_rows * 24),
-            LEGEND_BG_BGR, thickness=-1,
+            LEGEND_BG_BGR,
+            thickness=-1,
         )
         _draw_legend(canvas, legend_origin, grid_w, counts, color_for)
 
-    log.info("build plan: %dx%d cells, %dx%d px canvas, %d distinct bricks",
-             cols, rows, canvas_w, canvas_h, len(counts))
+    log.info(
+        "build plan: %dx%d cells, %dx%d px canvas, %d distinct bricks",
+        cols,
+        rows,
+        canvas_w,
+        canvas_h,
+        len(counts),
+    )
     return canvas

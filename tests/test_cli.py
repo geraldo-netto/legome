@@ -184,9 +184,7 @@ def test_main_build_plan_imwrite_failure(tmp_path, monkeypatch):
         return calls["n"] == 1
 
     monkeypatch.setattr(cv2, "imwrite", fake_imwrite)
-    rc = cli.main(
-        [str(src), str(dst), "--no-display", "--build-plan", str(tmp_path / "plan.png")]
-    )
+    rc = cli.main([str(src), str(dst), "--no-display", "--build-plan", str(tmp_path / "plan.png")])
     assert rc == 4
     assert calls["n"] == 2
 
@@ -216,12 +214,15 @@ def test_batch_palette_load_failure(tmp_path):
     _write_image(in_dir / "a.png")
     bad_pal = tmp_path / "bad.json"
     bad_pal.write_text("[]")
-    rc = cli.main([
-        str(in_dir),
-        str(tmp_path / "out"),
-        "--palette", str(bad_pal),
-        "--no-display",
-    ])
+    rc = cli.main(
+        [
+            str(in_dir),
+            str(tmp_path / "out"),
+            "--palette",
+            str(bad_pal),
+            "--no-display",
+        ]
+    )
     assert rc == 2
 
 
@@ -230,12 +231,15 @@ def test_batch_resize_parse_failure(tmp_path):
     in_dir = tmp_path / "in"
     in_dir.mkdir()
     _write_image(in_dir / "a.png")
-    rc = cli.main([
-        str(in_dir),
-        str(tmp_path / "out"),
-        "--no-display",
-        "--resize", "not-a-spec",
-    ])
+    rc = cli.main(
+        [
+            str(in_dir),
+            str(tmp_path / "out"),
+            "--no-display",
+            "--resize",
+            "not-a-spec",
+        ]
+    )
     assert rc == 2
 
 

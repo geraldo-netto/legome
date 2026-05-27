@@ -127,9 +127,7 @@ def closest_lego_color(rgb: RGB) -> tuple[LegoColor, float]:
     return best, dist
 
 
-def match_palette_to_lego(
-    palette_colors: Iterable[RGB], threshold: float = 40.0
-) -> list[dict]:
+def match_palette_to_lego(palette_colors: Iterable[RGB], threshold: float = 40.0) -> list[dict]:
     """For each palette color, return its closest Lego color and a match flag.
 
     PERF-06: vectorized via numpy broadcasting — one O(N*M) matrix op

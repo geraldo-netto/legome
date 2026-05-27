@@ -47,7 +47,7 @@ def test_apply_palette_real_lego_palette():
 
 def test_apply_palette_rejects_non_ndarray():
     with pytest.raises(TypeError):
-        apply_palette([[1, 2, 3]], _gradient_palette())
+        apply_palette([[1, 2, 3]], _gradient_palette())  # type: ignore[arg-type]
 
 
 def test_apply_palette_rejects_wrong_dtype():

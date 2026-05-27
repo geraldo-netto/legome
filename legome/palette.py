@@ -42,9 +42,7 @@ class Palette:
                 )
             for ch in c:
                 if not isinstance(ch, int) or not (0 <= ch <= 255):
-                    raise ValueError(
-                        f"palette '{self.name}' entry {i} channel out of range: {c}"
-                    )
+                    raise ValueError(f"palette '{self.name}' entry {i} channel out of range: {c}")
 
     def unique_colors(self) -> list[RGB]:
         seen = set()
@@ -71,8 +69,7 @@ def _coerce_colors(raw: Iterable[Sequence[int]]) -> tuple[RGB, ...]:
     for i, entry in enumerate(raw):
         if len(entry) != 3:
             raise ValueError(
-                f"palette entry {i} must be an RGB triple, "
-                f"got {len(entry)}-tuple: {tuple(entry)}"
+                f"palette entry {i} must be an RGB triple, got {len(entry)}-tuple: {tuple(entry)}"
             )
         r, g, b = entry
         out.append((int(r), int(g), int(b)))

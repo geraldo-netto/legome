@@ -9,12 +9,15 @@ import pytest
 from legome.resize import PAPER_SIZES, parse_resize_arg, resize_image
 
 
-@pytest.mark.parametrize("size_str,expected", [
-    ("100x200", (100, 200)),
-    ("1x1", (1, 1)),
-    ("320X240", (320, 240)),
-    (" 64x64 ", (64, 64)),
-])
+@pytest.mark.parametrize(
+    "size_str,expected",
+    [
+        ("100x200", (100, 200)),
+        ("1x1", (1, 1)),
+        ("320X240", (320, 240)),
+        (" 64x64 ", (64, 64)),
+    ],
+)
 def test_parse_resize_arg_wxh(size_str, expected):
     assert parse_resize_arg(size_str) == expected
 

@@ -61,7 +61,10 @@ def _build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     p.add_argument("input", help="input image path or directory (any format OpenCV can decode)")
-    p.add_argument("output", help="output image path (PNG recommended; JPEG is lossy) — must be a directory when input is a directory")
+    p.add_argument(
+        "output",
+        help="output image path (PNG recommended; JPEG is lossy) — must be a directory when input is a directory",
+    )
     p.add_argument(
         "--jobs",
         "-j",
@@ -108,9 +111,7 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="do not show a preview window after writing output",
     )
-    p.add_argument(
-        "--verbose", "-v", action="store_true", help="enable INFO-level logging"
-    )
+    p.add_argument("--verbose", "-v", action="store_true", help="enable INFO-level logging")
     p.add_argument("--version", action="version", version=f"legome {__version__}")
     return p
 
@@ -188,11 +189,7 @@ def _render_and_write_plan(args: argparse.Namespace, recolored: np.ndarray) -> n
 
     from .build_plan import DEFAULT_CELL_W_PX, render_build_plan
 
-    cell = (
-        args.build_plan_cell_px
-        if args.build_plan_cell_px is not None
-        else DEFAULT_CELL_W_PX
-    )
+    cell = args.build_plan_cell_px if args.build_plan_cell_px is not None else DEFAULT_CELL_W_PX
     plan = render_build_plan(recolored, cell_w_px=cell)
     plan_path = Path(args.build_plan).expanduser().resolve(strict=False).with_suffix(".png")
     if not cv2.imwrite(str(plan_path), plan):

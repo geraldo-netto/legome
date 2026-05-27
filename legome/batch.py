@@ -25,9 +25,7 @@ from .palette import Palette
 
 log = logging.getLogger("legome.batch")
 
-SUPPORTED_INPUT_EXTENSIONS = frozenset(
-    {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"}
-)
+SUPPORTED_INPUT_EXTENSIONS = frozenset({".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"})
 
 
 @dataclass(frozen=True)
@@ -104,13 +102,14 @@ def run_batch(
     """
     inputs = discover_inputs(in_dir)
     if not inputs:
-        log.warning("no supported images found in %s (looked for %s)", in_dir, sorted(SUPPORTED_INPUT_EXTENSIONS))
+        log.warning(
+            "no supported images found in %s (looked for %s)",
+            in_dir,
+            sorted(SUPPORTED_INPUT_EXTENSIONS),
+        )
         return []
     out_dir.mkdir(parents=True, exist_ok=True)
-    tasks = [
-        BatchTask(src=p, dst=out_dir / f"{p.stem}.png", resize=resize)
-        for p in inputs
-    ]
+    tasks = [BatchTask(src=p, dst=out_dir / f"{p.stem}.png", resize=resize) for p in inputs]
     n_workers = jobs if jobs is not None else (os.cpu_count() or 1)
     n_workers = max(1, n_workers)
     log.info("batch: %d files, %d workers", len(tasks), n_workers)

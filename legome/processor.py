@@ -178,8 +178,6 @@ def output_pixels_in_palette(image: np.ndarray, palette: Palette) -> bool:
 
     flat = image.reshape(-1, 3).astype(np.uint32)
     packed = (flat[:, 0] << 16) | (flat[:, 1] << 8) | flat[:, 2]
-    pal_arr = np.array(
-        [(b, g, r) for r, g, b in palette.colors], dtype=np.uint32
-    )
+    pal_arr = np.array([(b, g, r) for r, g, b in palette.colors], dtype=np.uint32)
     pal_packed = (pal_arr[:, 0] << 16) | (pal_arr[:, 1] << 8) | pal_arr[:, 2]
     return bool(np.isin(packed, pal_packed).all())

@@ -29,18 +29,14 @@ def _parse_color_row(p: Path, raw: str, line: str) -> tuple[tuple[int, int, int]
     """Parse one `R G B [name]` data row from a `.gpl` file."""
     parts = line.split(None, 3)
     if len(parts) < 3:
-        raise ValueError(
-            f"{p}: malformed color row (need at least 3 channels): {raw!r}"
-        )
+        raise ValueError(f"{p}: malformed color row (need at least 3 channels): {raw!r}")
     try:
         r, g, b = (int(parts[0]), int(parts[1]), int(parts[2]))
     except ValueError as exc:
         raise ValueError(f"{p}: non-integer channel in row {raw!r}") from exc
     for ch in (r, g, b):
         if not 0 <= ch <= 255:
-            raise ValueError(
-                f"{p}: channel out of range in row {raw!r}; must be 0..255"
-            )
+            raise ValueError(f"{p}: channel out of range in row {raw!r}; must be 0..255")
     color_name = parts[3].strip() if len(parts) >= 4 else ""
     return (r, g, b), color_name
 
@@ -78,9 +74,7 @@ def load_gpl(path: str | Path) -> Palette:
     lines = text.splitlines()
 
     if not lines or lines[0].strip() != "GIMP Palette":
-        raise ValueError(
-            f"{p}: not a GIMP palette (first line must be 'GIMP Palette')"
-        )
+        raise ValueError(f"{p}: not a GIMP palette (first line must be 'GIMP Palette')")
 
     name, colors, color_names = _parse_palette_entries(p, lines[1:])
 

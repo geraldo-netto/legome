@@ -51,7 +51,9 @@ def bench_output_check():
     pal = lego_palette()
     img = RNG.integers(0, 256, size=(512, 512, 3), dtype=np.uint8)
     img = apply_palette(img, pal, method="broadcast")  # output IS in palette
-    old = _time("slow set comprehension", lambda: _slow_output_pixels_in_palette(img, pal), repeats=2)
+    old = _time(
+        "slow set comprehension", lambda: _slow_output_pixels_in_palette(img, pal), repeats=2
+    )
     new = _time("vectorized np.isin", lambda: output_pixels_in_palette(img, pal), repeats=3)
     return {"old": old, "new": new, "size": img.size // 3}
 
@@ -66,7 +68,15 @@ def _slow_match_palette_to_lego(palette_colors, threshold=40.0):
     for c in palette_colors:
         best = min(LEGO_COLORS, key=lambda lc: _euclid_sq(lc.rgb, c))
         d = _euclid_sq(best.rgb, c) ** 0.5
-        out.append({"palette_rgb": c, "lego_name": best.name, "lego_rgb": best.rgb, "distance": d, "match": d <= threshold})
+        out.append(
+            {
+                "palette_rgb": c,
+                "lego_name": best.name,
+                "lego_rgb": best.rgb,
+                "distance": d,
+                "match": d <= threshold,
+            }
+        )
     return out
 
 
@@ -85,30 +95,60 @@ def bench_quantizer(size_hw):
     pal = lego_palette()
     h, w = size_hw
     img = RNG.integers(0, 256, size=(h, w, 3), dtype=np.uint8)
-    broadcast = _time("chunked broadcast", lambda: apply_palette(img, pal, method="broadcast"), repeats=3)
-    lut3d = _time("3D LUT (build + apply)", lambda: apply_palette(img, pal, method="lut3d"), repeats=3)
+    broadcast = _time(
+        "chunked broadcast", lambda: apply_palette(img, pal, method="broadcast"), repeats=3
+    )
+    lut3d = _time(
+        "3D LUT (build + apply)", lambda: apply_palette(img, pal, method="lut3d"), repeats=3
+    )
     return {"size": f"{h}x{w}", "pixels": h * w, "broadcast": broadcast, "lut3d": lut3d}
 
 
 def main():
-    out_lines = ["# Benchmark results", "", "Run with `python3 -m benchmarks.bench_perf`. Times are minimum of N repeats.", ""]
+    out_lines = [
+        "# Benchmark results",
+        "",
+        "Run with `python3 -m benchmarks.bench_perf`. Times are minimum of N repeats.",
+        "",
+    ]
 
     print("PERF-05: output_pixels_in_palette")
     r = bench_output_check()
     line = f"  {r['size']:>8} pixels — slow {r['old'] * 1000:8.2f} ms  vectorized {r['new'] * 1000:8.2f} ms  speedup {r['old'] / r['new']:6.1f}x"
     print(line)
-    out_lines += ["## PERF-05 output_pixels_in_palette", "", "| pixels | python set | vectorized | speedup |", "|--------|-----------:|-----------:|--------:|", f"| {r['size']} | {r['old'] * 1000:.2f} ms | {r['new'] * 1000:.2f} ms | {r['old'] / r['new']:.1f}x |", ""]
+    out_lines += [
+        "## PERF-05 output_pixels_in_palette",
+        "",
+        "| pixels | python set | vectorized | speedup |",
+        "|--------|-----------:|-----------:|--------:|",
+        f"| {r['size']} | {r['old'] * 1000:.2f} ms | {r['new'] * 1000:.2f} ms | {r['old'] / r['new']:.1f}x |",
+        "",
+    ]
 
     print()
     print("PERF-06: match_palette_to_lego")
     r = bench_lego_match()
     line = f"  N={r['n']:>4} palette colors — slow {r['old'] * 1000:6.2f} ms  vectorized {r['new'] * 1000:6.2f} ms  speedup {r['old'] / r['new']:6.1f}x"
     print(line)
-    out_lines += ["## PERF-06 match_palette_to_lego", "", "| palette colors | python loop | vectorized | speedup |", "|---------------:|------------:|-----------:|--------:|", f"| {r['n']} | {r['old'] * 1000:.2f} ms | {r['new'] * 1000:.2f} ms | {r['old'] / r['new']:.1f}x |", ""]
+    out_lines += [
+        "## PERF-06 match_palette_to_lego",
+        "",
+        "| palette colors | python loop | vectorized | speedup |",
+        "|---------------:|------------:|-----------:|--------:|",
+        f"| {r['n']} | {r['old'] * 1000:.2f} ms | {r['new'] * 1000:.2f} ms | {r['old'] / r['new']:.1f}x |",
+        "",
+    ]
 
     print()
     print("PERF-04: quantizer (chunked broadcast vs 3D LUT)")
-    out_lines += ["## PERF-04 quantizer (broadcast vs 3D LUT)", "", f"Auto-route threshold: {LUT3D_BREAKEVEN_PIXELS:,} pixels (above this `apply_palette` builds a 256^3 LUT once and indexes per pixel; below this it uses the chunked broadcast quantizer).", "", "| image size | broadcast | 3D LUT | faster? |", "|-----------:|----------:|-------:|:--------|"]
+    out_lines += [
+        "## PERF-04 quantizer (broadcast vs 3D LUT)",
+        "",
+        f"Auto-route threshold: {LUT3D_BREAKEVEN_PIXELS:,} pixels (above this `apply_palette` builds a 256^3 LUT once and indexes per pixel; below this it uses the chunked broadcast quantizer).",
+        "",
+        "| image size | broadcast | 3D LUT | faster? |",
+        "|-----------:|----------:|-------:|:--------|",
+    ]
     for size in [(64, 64), (256, 256), (1024, 1024), (2048, 2048)]:
         r = bench_quantizer(size)
         faster = "lut3d" if r["lut3d"] < r["broadcast"] else "broadcast"

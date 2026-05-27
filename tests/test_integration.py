@@ -42,9 +42,7 @@ def test_example_output_only_palette_colors():
     img = _example_image()
     pal = load_palette(default_palette_path())
     out = apply_palette(img, pal)
-    assert output_pixels_in_palette(out, pal), (
-        "output contains pixels outside the declared palette"
-    )
+    assert output_pixels_in_palette(out, pal), "output contains pixels outside the declared palette"
 
 
 def test_example_palette_buildable_in_lego():

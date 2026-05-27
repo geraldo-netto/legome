@@ -2,6 +2,7 @@
 
 import sys
 import types
+from typing import Any
 
 import numpy as np
 
@@ -49,7 +50,12 @@ def test_show_image_skips_when_cv2_missing(monkeypatch):
 
 def test_show_image_invokes_cv2_loop(monkeypatch):
     """When display + cv2 are present, show_image drives the cv2 GUI loop."""
-    calls = {"namedWindow": 0, "imshow": 0, "destroyAllWindows": 0, "wait": 0}
+    calls: dict[str, Any] = {
+        "namedWindow": 0,
+        "imshow": 0,
+        "destroyAllWindows": 0,
+        "wait": 0,
+    }
     visible_states = [1, 1, 0]  # visible for two iterations, then closed
 
     class WND:
@@ -188,13 +194,16 @@ def test_show_image_quits_on_q(monkeypatch):
             return np.zeros((h, w, 3), dtype=np.uint8)
 
         @staticmethod
-        def namedWindow(*a, **k): pass
+        def namedWindow(*a, **k):
+            pass
 
         @staticmethod
-        def resizeWindow(*a, **k): pass
+        def resizeWindow(*a, **k):
+            pass
 
         @staticmethod
-        def imshow(*a, **k): pass
+        def imshow(*a, **k):
+            pass
 
         @staticmethod
         def getWindowProperty(*a, **k):
@@ -205,7 +214,8 @@ def test_show_image_quits_on_q(monkeypatch):
             return ord("q")
 
         @staticmethod
-        def destroyAllWindows(): pass
+        def destroyAllWindows():
+            pass
 
     fake_cv2 = types.ModuleType("cv2")
     for k in dir(WND):
