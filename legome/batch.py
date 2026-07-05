@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import logging
 import os
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -39,7 +39,7 @@ class BatchTask:
 class BatchResult:
     src: Path
     dst: Path
-    status: str  # "ok" | "decode_failed" | "write_failed"
+    status: str  # "ok" | "decode_failed" | "write_failed" | "error"
     message: str = ""
 
 
@@ -72,20 +72,32 @@ def _process_one(task: BatchTask) -> BatchResult:
 
     palette = _WORKER_PALETTE
     if palette is None:
+        # Programmer/config error, not a per-file failure — must NOT be
+        # swallowed into a BatchResult. Propagate so the misconfiguration
+        # surfaces immediately.
         raise RuntimeError(
             "_init_worker(palette) must run before _process_one — call it via "
             "the pool initializer= or directly before sequential dispatch"
         )
 
-    image = cv2.imread(str(task.src))
-    if image is None:
-        return BatchResult(task.src, task.dst, "decode_failed", "cv2.imread returned None")
-    if task.resize is not None:
-        image = resize_image(image, task.resize)
-    recolored = apply_palette(image, palette)
-    if not cv2.imwrite(str(task.dst), recolored):
-        return BatchResult(task.src, task.dst, "write_failed", f"cv2.imwrite refused {task.dst}")
-    return BatchResult(task.src, task.dst, "ok")
+    # REL-16: isolate every per-file failure. Only `decode`/`write` used to be
+    # caught; any other raise (cv2.error, MemoryError, a bad-image ValueError
+    # from resize/apply_palette) escaped `ex.map` and aborted the whole batch,
+    # discarding all already-computed results. Turn it into a per-file result.
+    try:
+        image = cv2.imread(str(task.src))
+        if image is None:
+            return BatchResult(task.src, task.dst, "decode_failed", "cv2.imread returned None")
+        if task.resize is not None:
+            image = resize_image(image, task.resize)
+        recolored = apply_palette(image, palette)
+        if not cv2.imwrite(str(task.dst), recolored):
+            return BatchResult(
+                task.src, task.dst, "write_failed", f"cv2.imwrite refused {task.dst}"
+            )
+        return BatchResult(task.src, task.dst, "ok")
+    except Exception as exc:  # noqa: BLE001 - intentional per-file isolation
+        return BatchResult(task.src, task.dst, "error", f"{type(exc).__name__}: {exc}")
 
 
 def run_batch(
@@ -112,11 +124,25 @@ def run_batch(
     tasks = [BatchTask(src=p, dst=out_dir / f"{p.stem}.png", resize=resize) for p in inputs]
     n_workers = jobs if jobs is not None else (os.cpu_count() or 1)
     n_workers = max(1, n_workers)
-    log.info("batch: %d files, %d workers", len(tasks), n_workers)
+    total = len(tasks)
+    log.info("batch: %d files, %d workers", total, n_workers)
     if n_workers == 1:
         _init_worker(palette)
-        return [_process_one(t) for t in tasks]
+        results: list[BatchResult] = []
+        for i, task in enumerate(tasks, 1):
+            res = _process_one(task)
+            results.append(res)
+            log.info("batch progress %d/%d: %s -> %s", i, total, res.src.name, res.status)
+        return results
+    # OBS-01: consume futures as they complete so long batches emit per-file
+    # progress instead of blocking silently until the last worker returns.
     with ProcessPoolExecutor(
         max_workers=n_workers, initializer=_init_worker, initargs=(palette,)
     ) as ex:
-        return list(ex.map(_process_one, tasks))
+        futures = [ex.submit(_process_one, t) for t in tasks]
+        results = []
+        for i, fut in enumerate(as_completed(futures), 1):
+            res = fut.result()
+            results.append(res)
+            log.info("batch progress %d/%d: %s -> %s", i, total, res.src.name, res.status)
+        return results

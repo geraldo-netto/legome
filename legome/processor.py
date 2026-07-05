@@ -48,11 +48,11 @@ def palette_bgr_unique(palette: Palette) -> np.ndarray:
 
 def _quantize_chunk(pixels_bgr_i32: np.ndarray, palette_bgr_i32: np.ndarray) -> np.ndarray:
     """For each pixel, return the palette color minimizing squared distance."""
-    diff = pixels_bgr_i32[:, None, :] - palette_bgr_i32[None, :, :]
-    d2 = (diff * diff).sum(axis=2)
-    idx = d2.argmin(axis=1)
-    nearest: np.ndarray = palette_bgr_i32[idx]
-    return nearest
+    from .nearest import nearest_indices
+
+    idx = nearest_indices(pixels_bgr_i32, palette_bgr_i32)
+    out: np.ndarray = palette_bgr_i32[idx]
+    return out
 
 
 LUT3D_BREAKEVEN_PIXELS = 2_000_000

@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import logging
 from collections import Counter
+from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from .lego_colors import LEGO_COLORS, LegoColor
@@ -32,6 +33,11 @@ if TYPE_CHECKING:  # pragma: no cover
     import numpy as np
 
 log = logging.getLogger("legome.build_plan")
+
+# SCAL-08: warn before allocating a build-plan canvas larger than this. A
+# 128x128-stud mosaic at the default 100-px cell is already ~600 MB, so a
+# blind `np.full` can OOM. This is a soft guard — render still proceeds.
+MAX_CANVAS_BYTES_WARN = 512 * 1024 * 1024
 
 LEGO_UNIT_W_MM = 7.8
 LEGO_UNIT_H_MM = 9.6
@@ -69,8 +75,15 @@ def _text_color(bgr: tuple[int, int, int]) -> tuple[int, int, int]:
     return (0, 0, 0) if _luminance(*bgr) >= 128 else (255, 255, 255)
 
 
+@lru_cache(maxsize=4096)
 def _fit_text(text: str, max_w: int, max_h: int, font, thickness: int) -> tuple[str, float]:
-    """Pick the largest font scale (and possibly truncate text) so it fits."""
+    """Pick the largest font scale (and possibly truncate text) so it fits.
+
+    PERF-09: memoized. Cell geometry is constant within a render and cell
+    text repeats heavily (the same color name/ID appears across thousands of
+    cells), so the fit result depends only on `(text, max_w, max_h, font,
+    thickness)` — cache it and skip the redundant `cv2.getTextSize` sweeps.
+    """
     import cv2
 
     if not text:
@@ -263,6 +276,21 @@ def render_build_plan(
 
     canvas_w = margin * 2 + grid_w
     canvas_h = margin * 2 + grid_h + legend_h
+    # SCAL-08: canvas memory grows as cells x cell_px^2. Warn before a blind
+    # allocation that could OOM on large mosaics.
+    projected_bytes = canvas_w * canvas_h * 3
+    if projected_bytes > MAX_CANVAS_BYTES_WARN:
+        log.warning(
+            "build-plan canvas is %.0f MB (%dx%d px for a %dx%d-cell mosaic at "
+            "cell_w_px=%d) — this may exhaust memory; consider a smaller "
+            "--build-plan-cell-px or resizing the mosaic",
+            projected_bytes / (1024 * 1024),
+            canvas_w,
+            canvas_h,
+            cols,
+            rows,
+            cell_w_px,
+        )
     canvas = np.full((canvas_h, canvas_w, 3), MARGIN_BG_BGR, dtype=np.uint8)
 
     grid_origin = (margin, margin)

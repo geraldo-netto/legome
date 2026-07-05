@@ -6,7 +6,7 @@ Status: `open` | `in-progress`. Effort: `S` (<1h) | `M` (1-4h) | `L` (>4h).
 
 Closed items (done / wontfix) are removed from this board — the commit history is the record. Add new findings under the matching category before reporting in chat.
 
-Last rescan: 2026-05-27 (post SEC + 100% coverage sweep).
+Last rescan: 2026-07-04 (full re-scan, all categories).
 
 ## security
 
@@ -30,7 +30,9 @@ _(no open findings — enforced by ruff `C90` at max-complexity 10.)_
 
 ## code duplication
 
-_(no open findings)_
+| id | status | effort | description |
+|----|--------|--------|-------------|
+| DUP-02 | open | S | `SUPPORTED_INPUT_EXTENSIONS` (`legome/batch.py`) and `SUPPORTED_OUTPUT_EXTENSIONS` (`legome/imageio.py`) are byte-identical frozensets that can silently drift apart. Define once (e.g. in `imageio`) and import into `batch`. |
 
 ## architecture/modularity/SOLID
 

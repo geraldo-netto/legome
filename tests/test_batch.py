@@ -76,6 +76,46 @@ def test_process_one_write_failure(tmp_path, monkeypatch):
     assert res.status == "write_failed"
 
 
+def test_process_one_unexpected_error_is_isolated(tmp_path, monkeypatch):
+    """REL-16: an unexpected raise becomes an 'error' result, not a batch abort."""
+    import legome.processor as processor_mod
+
+    _init_worker(lego_palette())
+    src = tmp_path / "in.png"
+    _write_png(src)
+
+    def _boom(_image, _palette):
+        raise MemoryError("simulated OOM")
+
+    monkeypatch.setattr(processor_mod, "apply_palette", _boom)
+    res = _process_one(BatchTask(src=src, dst=tmp_path / "out.png", resize=None))
+    assert res.status == "error"
+    assert "MemoryError" in res.message
+
+
+def test_run_batch_isolates_one_bad_file(tmp_path, monkeypatch):
+    """REL-16: one failing image does not lose the results of the good ones."""
+    import legome.processor as processor_mod
+
+    in_dir = tmp_path / "in"
+    out_dir = tmp_path / "out"
+    in_dir.mkdir()
+    _write_png(in_dir / "good.png", value=10)
+    _write_png(in_dir / "bad.png", value=20)
+
+    real = processor_mod.apply_palette
+
+    def _selective(image, palette):
+        if int(image[0, 0, 0]) == 20:
+            raise ValueError("bad image")
+        return real(image, palette)
+
+    monkeypatch.setattr(processor_mod, "apply_palette", _selective)
+    results = run_batch(in_dir, out_dir, lego_palette(), jobs=1)
+    by_name = {r.src.name: r.status for r in results}
+    assert by_name == {"good.png": "ok", "bad.png": "error"}
+
+
 def test_run_batch_sequential(tmp_path):
     in_dir = tmp_path / "in"
     out_dir = tmp_path / "out"

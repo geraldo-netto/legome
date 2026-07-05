@@ -44,6 +44,20 @@ def test_luminance_dark_vs_light():
     assert _text_color((255, 255, 255)) == (0, 0, 0)
 
 
+def test_render_build_plan_warns_on_large_canvas(monkeypatch, caplog):
+    """SCAL-08: a projected canvas over the threshold logs a warning but still renders."""
+    import logging
+
+    import legome.build_plan as bp
+
+    monkeypatch.setattr(bp, "MAX_CANVAS_BYTES_WARN", 0)
+    mosaic = _mosaic(rows=2, cols=2)
+    with caplog.at_level(logging.WARNING, logger="legome.build_plan"):
+        out = bp.render_build_plan(mosaic)
+    assert out is not None
+    assert any("may exhaust memory" in m for m in caplog.messages)
+
+
 def test_render_build_plan_canvas_shape():
     mosaic = _mosaic(rows=4, cols=3)
     out = render_build_plan(mosaic)

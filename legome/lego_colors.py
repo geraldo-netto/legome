@@ -116,37 +116,31 @@ def _assert_unique_rgbs() -> None:
 _assert_unique_rgbs()
 
 
-def _euclid_sq(a: RGB, b: RGB) -> int:
-    return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2
-
-
 def closest_lego_color(rgb: RGB) -> tuple[LegoColor, float]:
-    """Return (closest_lego_color, euclidean_distance) for `rgb`."""
-    best = min(LEGO_COLORS, key=lambda lc: _euclid_sq(lc.rgb, rgb))
-    dist = _euclid_sq(best.rgb, rgb) ** 0.5
-    return best, dist
+    """Return (closest_lego_color, euclidean_distance) for `rgb`.
+
+    ARCH-02: shares the one nearest-neighbor core in `legome.nearest`.
+    """
+    from .nearest import nearest
+
+    idx, dist = nearest([tuple(rgb)], [c.rgb for c in LEGO_COLORS])
+    return LEGO_COLORS[int(idx[0])], float(dist[0])
 
 
 def match_palette_to_lego(palette_colors: Iterable[RGB], threshold: float = 40.0) -> list[dict]:
     """For each palette color, return its closest Lego color and a match flag.
 
-    PERF-06: vectorized via numpy broadcasting — one O(N*M) matrix op
-    instead of N Python `min` loops over M items. Caller-visible output is
-    unchanged.
+    PERF-06 / ARCH-02: vectorized via the shared `legome.nearest` core — one
+    O(N*M) matrix op instead of N Python `min` loops. Output is unchanged.
 
     Returns list of dicts: {palette_rgb, lego_name, lego_rgb, distance, match}.
     """
-    import numpy as np
+    from .nearest import nearest
 
     pal_list = [tuple(c) for c in palette_colors]
     if not pal_list:
         return []
-    pal = np.array(pal_list, dtype=np.int32)
-    lego = np.array([c.rgb for c in LEGO_COLORS], dtype=np.int32)
-    diff = pal[:, None, :] - lego[None, :, :]
-    d2 = (diff * diff).sum(axis=2)
-    best_idx = d2.argmin(axis=1)
-    best_d = np.sqrt(d2[np.arange(len(pal)), best_idx]).astype(float)
+    best_idx, best_d = nearest(pal_list, [c.rgb for c in LEGO_COLORS])
 
     out: list[dict] = []
     for i, c in enumerate(pal_list):
