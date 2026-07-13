@@ -30,9 +30,7 @@ _(no open findings — enforced by ruff `C90` at max-complexity 10.)_
 
 ## code duplication
 
-| id | status | effort | description |
-|----|--------|--------|-------------|
-| DUP-02 | open | S | `SUPPORTED_INPUT_EXTENSIONS` (`legome/batch.py`) and `SUPPORTED_OUTPUT_EXTENSIONS` (`legome/imageio.py`) are byte-identical frozensets that can silently drift apart. Define once (e.g. in `imageio`) and import into `batch`. |
+_(no open findings)_
 
 ## architecture/modularity/SOLID
 

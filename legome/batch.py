@@ -21,11 +21,10 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
+from .imageio import SUPPORTED_IMAGE_EXTENSIONS
 from .palette import Palette
 
 log = logging.getLogger("legome.batch")
-
-SUPPORTED_INPUT_EXTENSIONS = frozenset({".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"})
 
 
 @dataclass(frozen=True)
@@ -60,7 +59,7 @@ def discover_inputs(in_dir: Path) -> list[Path]:
     return sorted(
         p
         for p in in_dir.iterdir()
-        if p.is_file() and p.suffix.lower() in SUPPORTED_INPUT_EXTENSIONS
+        if p.is_file() and p.suffix.lower() in SUPPORTED_IMAGE_EXTENSIONS
     )
 
 
@@ -117,7 +116,7 @@ def run_batch(
         log.warning(
             "no supported images found in %s (looked for %s)",
             in_dir,
-            sorted(SUPPORTED_INPUT_EXTENSIONS),
+            sorted(SUPPORTED_IMAGE_EXTENSIONS),
         )
         return []
     out_dir.mkdir(parents=True, exist_ok=True)

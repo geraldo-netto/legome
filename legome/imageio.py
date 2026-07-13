@@ -16,7 +16,9 @@ from pathlib import Path
 
 log = logging.getLogger("legome.imageio")
 
-SUPPORTED_OUTPUT_EXTENSIONS = frozenset({".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"})
+# DUP-02: single source of truth for the extensions legome can read and write.
+# `batch` imports this for input discovery instead of keeping its own copy.
+SUPPORTED_IMAGE_EXTENSIONS = frozenset({".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"})
 LOSSY_OUTPUT_EXTENSIONS = frozenset({".jpg", ".jpeg"})
 
 _EXT_TO_FORMAT = {
@@ -99,7 +101,7 @@ def reconcile_output_extension(path: Path) -> Path:
     - Lossy extension (.jpg/.jpeg) → kept but warned about palette drift.
     """
     ext = path.suffix.lower()
-    if ext not in SUPPORTED_OUTPUT_EXTENSIONS:
+    if ext not in SUPPORTED_IMAGE_EXTENSIONS:
         new = path.with_suffix(".png")
         log.warning(
             "output extension '%s' is not supported; writing PNG to %s instead",
