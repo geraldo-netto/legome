@@ -61,9 +61,11 @@ def bench_output_check():
 # ---- PERF-06: match_palette_to_lego ------------------------------------------
 
 
-def _slow_match_palette_to_lego(palette_colors, threshold=40.0):
-    from legome.lego_colors import _euclid_sq
+def _euclid_sq(a, b):
+    return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2
 
+
+def _slow_match_palette_to_lego(palette_colors, threshold=40.0):
     out = []
     for c in palette_colors:
         best = min(LEGO_COLORS, key=lambda lc: _euclid_sq(lc.rgb, c))
