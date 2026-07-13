@@ -171,6 +171,7 @@ def test_run_batch_with_resize(tmp_path):
     results = run_batch(in_dir, out_dir, pal, resize=(4, 4), jobs=1)
     assert results[0].status == "ok"
     out = cv2.imread(str(results[0].dst))
+    assert out is not None
     assert out.shape == (4, 4, 3)
 
 

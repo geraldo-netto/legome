@@ -97,6 +97,7 @@ def test_cli_loads_gpl_via_palette_flag(tmp_path):
     rc = main([str(src), str(dst), "--palette", str(pal_file), "--no-display"])
     assert rc == 0
     out = cv2.imread(str(dst))
+    assert out is not None
     seen = {tuple(int(c) for c in px) for px in out.reshape(-1, 3)}
     # Output BGR; palette colors stored RGB.
     expected_bgr = {(b, g, r) for r, g, b in [(27, 42, 52), (242, 243, 242), (196, 40, 28)]}

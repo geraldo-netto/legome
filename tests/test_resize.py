@@ -64,6 +64,7 @@ def test_cli_resize_wxh(tmp_path):
     rc = main([str(src), str(dst), "--resize", "16x16", "--no-display"])
     assert rc == 0
     out = cv2.imread(str(dst))
+    assert out is not None
     assert out.shape == (16, 16, 3)
 
 
@@ -76,6 +77,7 @@ def test_cli_resize_preset(tmp_path):
     rc = main([str(src), str(dst), "--resize", "a4", "--no-display"])
     assert rc == 0
     out = cv2.imread(str(dst))
+    assert out is not None
     # PAPER_SIZES["a4"] == (32, 48)  -> width 32, height 48
     assert out.shape == (48, 32, 3)
 

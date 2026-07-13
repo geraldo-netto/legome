@@ -65,6 +65,7 @@ def test_cli_end_to_end_on_example(tmp_path):
     # JPEG is lossy; verify on the in-memory recolored buffer instead by
     # reprocessing the input and ensuring at least the in-memory result obeys.
     src = cv2.imread(str(EXAMPLE_INPUT))
+    assert src is not None
     recolored = apply_palette(src, pal)
     assert output_pixels_in_palette(recolored, pal)
 
