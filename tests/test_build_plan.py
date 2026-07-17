@@ -177,6 +177,18 @@ def test_fit_text_empty_returns_blank():
     assert _fit_text("", 100, 30, font, 1) == ("", 0.5)
 
 
+def test_fit_text_truncates_with_ellipsis_when_narrow():
+    """No scale fits the full text, but a truncated candidate + '..' does."""
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    # 20 W's are ~121 px wide even at the minimum scale (0.3), so every scale
+    # fails; max_w=60 still admits a shorter 'W…W..' candidate, exercising the
+    # successful-truncation return inside the while loop.
+    fitted, scale = _fit_text("W" * 20, 60, 30, font, 1)
+    assert fitted.endswith("..")
+    assert len(fitted) < 20
+    assert scale == 0.3
+
+
 def test_fit_text_truncates_to_question_mark_when_too_narrow():
     """No scale + no truncation fits → fall through to '?' fallback."""
     font = cv2.FONT_HERSHEY_SIMPLEX
