@@ -76,7 +76,9 @@ exclude_also = [
 ]
 
 [tool.mypy]
-python_version = "3.10"
+# No python_version pin: each CI matrix job type-checks against its own
+# interpreter. Pinning 3.10 breaks on numpy >= 2.5 stubs (PEP 695 `type`
+# statements), and the 3.10 job still guards syntax compatibility.
 strict_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
