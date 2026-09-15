@@ -1,10 +1,9 @@
 name: ci
 
+# Manual-only: CI runs when explicitly triggered (Actions tab or
+# `gh workflow run ci.yml`). Automatic push/pull_request triggers are
+# intentionally disabled.
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
   workflow_dispatch:
 
 concurrency:
